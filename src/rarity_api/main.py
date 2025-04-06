@@ -1,8 +1,22 @@
+from contextlib import asynccontextmanager
 from typing import Union
 
+from alembic import command
+from alembic.config import Config
 from fastapi import FastAPI
 
 app = FastAPI()
+
+
+@asynccontextmanager
+async def lifespan():
+    run_migrations()
+    yield
+
+
+def run_migrations():
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
 
 
 @app.get("/")
