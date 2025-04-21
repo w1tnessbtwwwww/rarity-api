@@ -1,4 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Table
+from typing import Dict, List, Any
+
+from sqlalchemy import Column, Integer, String, ForeignKey, Table, select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, declarative_base
 
 Base = declarative_base()
@@ -9,6 +12,46 @@ manufacturer_city_association = Table(
     Column('manufacturer_id', Integer, ForeignKey('manufacturers.id'), primary_key=True),
     Column('city_id', Integer, ForeignKey('cities.id'), primary_key=True)
 )
+
+
+class BaseRepository:
+    def __init__(self, session: AsyncSession, model_class):
+        self.session = session
+        self.model_class = model_class
+
+    async def get_by_filter(self, filters: Dict[str, Any]) -> List[Any]:
+        query = select(self.model_class)
+        for key, value in filters.items():
+            query = query.where(getattr(self.model_class, key) == value)
+        result = await self.session.execute(query)
+        return result.scalars().all()
+
+    async def get_by_id(self, id: int) -> Any:
+        query = select(self.model_class).where(self.model_class.id == id)
+        result = await self.session.execute(query)
+        return result.scalar_one_or_none()
+
+    async def create(self, data: Dict[str, Any]) -> Any:
+        instance = self.model_class(**data)
+        self.session.add(instance)
+        await self.session.commit()
+        return instance
+
+    async def update(self, id: int, data: Dict[str, Any]) -> Any:
+        instance = await self.get_by_id(id)
+        if instance:
+            for key, value in data.items():
+                setattr(instance, key, value)
+            await self.session.commit()
+        return instance
+
+    async def delete(self, id: int) -> bool:
+        instance = await self.get_by_id(id)
+        if instance:
+            await self.session.delete(instance)
+            await self.session.commit()
+            return True
+        return False
 
 
 class Country(Base):
@@ -53,3 +96,28 @@ class Item(Base):
     photo_links = Column(String)  # Можно хранить ссылки в формате JSON
     manufacturer_id = Column(Integer, ForeignKey('manufacturers.id'), nullable=False)
     manufacturer = relationship("Manufacturer", back_populates="items")
+
+
+class CountryRepository(BaseRepository):
+    def __init__(self, session: AsyncSession):
+        super().__init__(session, Country)
+
+
+class RegionRepository(BaseRepository):
+    def __init__(self, session: AsyncSession):
+        super().__init__(session, Region)
+
+
+class CityRepository(BaseRepository):
+    def __init__(self, session: AsyncSession):
+        super().__init__(session, City)
+
+
+class ManufacturerRepository(BaseRepository):
+    def __init__(self, session: AsyncSession):
+        super().__init__(session, Manufacturer)
+
+
+class ItemRepository(BaseRepository):
+    def __init__(self, session: AsyncSession):
+        super().__init__(session, Item)
