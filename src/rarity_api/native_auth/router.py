@@ -9,7 +9,7 @@ from rarity_api.native_auth.utils.jwt_helpers import create_access_token, create
 from rarity_api.native_auth.utils.password_helpers import hash_password
 
 router = APIRouter(
-    prefix="/native-auth",
+    prefix="/plain",
     tags=["native authorization"]
 )
 

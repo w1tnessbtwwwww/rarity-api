@@ -9,6 +9,8 @@ from rarity_api.endpoints.country_router import router as country_router
 from rarity_api.endpoints.item_router import router as item_router
 from rarity_api.endpoints.manufacturer_router import router as manufacturer_router
 from rarity_api.endpoints.region_router import router as region_router
+from rarity_api.google_auth.router import router as google_auth_router
+from rarity_api.native_auth.router import router as plain_auth_router
 
 app = FastAPI(
     title="Rarity API",
@@ -16,6 +18,8 @@ app = FastAPI(
     version="1.0.0"
 )
 
+app.include_router(google_auth_router)
+app.include_router(plain_auth_router)
 # Include all routers
 app.include_router(country_router)
 app.include_router(region_router)

@@ -1,10 +1,11 @@
 from sqlalchemy import select
 
-from database import AbstractRepository
-from common.auth.models.user import User
-from common.auth.schemas.user import UserCreate 
-from google_auth.schemas.oidc_user import UserInfoFromIDProvider
-from common.auth.models.auth_credentials import AuthCredentials
+from rarity_api.common.auth.models.auth_credentials import AuthCredentials
+from rarity_api.common.auth.models.user import User
+from rarity_api.common.auth.schemas.user import UserCreate
+from rarity_api.database import AbstractRepository
+from rarity_api.google_auth.schemas.oidc_user import UserInfoFromIDProvider
+
 
 class UserRepository(AbstractRepository):
     model = User
@@ -13,17 +14,16 @@ class UserRepository(AbstractRepository):
         existing_user = await self.get_by_filter({"email": email})
         if existing_user:
             return existing_user[0]
-    
 
     async def get_or_create_oidc_user(self, user_data: UserInfoFromIDProvider):
         existing_user = await self.get_existing_user_by_mail(email=user_data.email)
         if existing_user:
-            return existing_user 
+            return existing_user
 
         created_user = await self.create(UserCreate(email=user_data.email))
 
         return created_user
-    
+
     async def get_native_user_with_creds_by_email(self, email: str):
         query = (
             select(self.model, AuthCredentials)
@@ -32,4 +32,4 @@ class UserRepository(AbstractRepository):
         )
 
         result = await self._session.execute(query)
-        return result.first() 
+        return result.first()

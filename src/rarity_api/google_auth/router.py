@@ -31,7 +31,7 @@ from rarity_api.google_auth.utils.requests import exchage_code_to_tokens
 from rarity_api.settings import settings
 
 router = APIRouter(
-    prefix="/google-auth",
+    prefix="/google",
     tags=["google authorization"]
 )
 
