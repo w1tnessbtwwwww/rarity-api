@@ -1,13 +1,12 @@
 from typing import List
-from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 
 from rarity_api.database import get_session
-from rarity_api.endpoints.repos import Item
 from rarity_api.endpoints.datas import ItemData
+from rarity_api.endpoints.repos import Item
 from rarity_api.endpoints.repos import ItemRepository
 
 router = APIRouter(

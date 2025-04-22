@@ -10,7 +10,7 @@ class CityData(BaseModel):
 
 
 class RegionData(BaseModel):
-    id: id
+    id: int
     name: str  # nullable=False
     # country_id: int
     # country: CountryData

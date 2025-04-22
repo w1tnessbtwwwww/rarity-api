@@ -19,6 +19,7 @@ def mapping(city: City) -> CityData:
         name=city.name
     )
 
+
 @router.get("/")
 async def get_cities(
         session: AsyncSession = Depends(get_session)

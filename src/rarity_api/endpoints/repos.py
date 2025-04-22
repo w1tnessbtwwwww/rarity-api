@@ -57,45 +57,45 @@ class BaseRepository:
 class Country(Base):
     __tablename__ = 'countries'
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
-    regions = relationship("Region", back_populates="country")
+    # name = Column(String, nullable=False, unique=True)
+    # regions = relationship("Region", back_populates="country")
 
 
 class Region(Base):
     __tablename__ = 'regions'
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    country_id = Column(Integer, ForeignKey('countries.id'), nullable=False)
-    country = relationship("Country", back_populates="regions")
-    cities = relationship("City", back_populates="region")
+    # name = Column(String, nullable=False)
+    # country_id = Column(Integer, ForeignKey('countries.id'), nullable=False)
+    # country = relationship("Country", back_populates="regions")
+    # cities = relationship("City", back_populates="region")
 
 
 class City(Base):
     __tablename__ = 'cities'
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    region_id = Column(Integer, ForeignKey('regions.id'), nullable=False)
-    region = relationship("Region", back_populates="cities")
-    manufacturers = relationship("Manufacturer", secondary=manufacturer_city_association, back_populates="cities")
+    # name = Column(String, nullable=False)
+    # region_id = Column(Integer, ForeignKey('regions.id'), nullable=False)
+    # region = relationship("Region", back_populates="cities")
+    # manufacturers = relationship("Manufacturer", secondary=manufacturer_city_association, back_populates="cities")
 
 
 class Manufacturer(Base):
     __tablename__ = 'manufacturers'
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    cities = relationship("City", secondary=manufacturer_city_association, back_populates="manufacturers")
-    items = relationship("Item", back_populates="manufacturer")
+    # name = Column(String, nullable=False)
+    # cities = relationship("City", secondary=manufacturer_city_association, back_populates="manufacturers")
+    # items = relationship("Item", back_populates="manufacturer")
 
 
 class Item(Base):
     __tablename__ = 'items'
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    description = Column(String)
-    production_years = Column(String)  # Можно хранить как JSON или просто строку с диапазонами
-    photo_links = Column(String)  # Можно хранить ссылки в формате JSON
-    manufacturer_id = Column(Integer, ForeignKey('manufacturers.id'), nullable=False)
-    manufacturer = relationship("Manufacturer", back_populates="items")
+    # name = Column(String, nullable=False)
+    # description = Column(String)
+    # production_years = Column(String)  # Можно хранить как JSON или просто строку с диапазонами
+    # photo_links = Column(String)  # Можно хранить ссылки в формате JSON
+    # manufacturer_id = Column(Integer, ForeignKey('manufacturers.id'), nullable=False)
+    # manufacturer = relationship("Manufacturer", back_populates="items")
 
 
 class CountryRepository(BaseRepository):
