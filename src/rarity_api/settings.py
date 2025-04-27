@@ -25,9 +25,6 @@ class Settings(BaseSettings):
     project_title: str = Field(alias="PROJECT_TITLE")
     api_base_url: str = Field(alias="API_BASE_URL")
     
-    fastapi_host: str = Field(alias="FASTAPI_HOST")
-    fastapi_port: int = Field(alias="FASTAPI_PORT")
-
     postgres_user: str = Field(alias="POSTGRES_USER")
     postgres_password: str = Field(alias="POSTGRES_PASSWORD")
     postgres_db: str = Field(alias="POSTGRES_DB")

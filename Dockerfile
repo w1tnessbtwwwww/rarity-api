@@ -14,16 +14,21 @@ WORKDIR /code
 
 COPY --from=requirements-stage /tmp/requirements.txt /code/requirements.txt
 
-RUN apt-get update
-RUN apt-get install libpq-dev -y
+RUN apt-get update && apt-get install -y libpq-dev
 
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-COPY ./src /code/
+COPY ./src /code/src
 COPY ./alembic.ini /code/
 COPY ./alembic /code/alembic/
-COPY ./certs /certs/
+COPY ./certs /code/src/certs/
 
-WORKDIR /code/src
+# Очень важно! src будет добавлен в PYTHONPATH
+ENV PYTHONPATH=/code/src
 
-CMD ["python", "main.py"]
+# Оставляем рабочую директорию на уровне /code
+WORKDIR /code
+
+# Запускаем как модуль
+#CMD ["python", "-m", "rarity_api.main"]
+CMD ["uvicorn", "rarity_api.main:app", "--host", "0.0.0.0", "--port", "8000"]

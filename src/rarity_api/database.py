@@ -1,11 +1,11 @@
 from abc import ABC
 
 import sqlalchemy
-from settings import settings
-from sqlalchemy import select, insert, delete, update
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
+
+from rarity_api.settings import settings
 
 meta = sqlalchemy.MetaData()
 engine = create_async_engine(settings.db_url, echo=True)

@@ -4,7 +4,7 @@ services:
     env_file:
       - .env
     ports:
-      - '${FASTAPI_PORT}:${FASTAPI_PORT}'
+      - '8000:8000'
   db:
     image: postgres:17
     environment:

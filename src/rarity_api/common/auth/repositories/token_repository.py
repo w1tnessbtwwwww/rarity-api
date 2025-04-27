@@ -1,7 +1,7 @@
-from database import AbstractRepository
+from rarity_api.database import AbstractRepository
 
-from common.auth.models.token import Token
-from common.auth.schemas.token import TokenCreate
+from rarity_api.common.auth.models.token import Token
+from rarity_api.common.auth.schemas.token import TokenCreate
 
 
 class TokenRepository(AbstractRepository):
@@ -14,17 +14,10 @@ class TokenRepository(AbstractRepository):
                 "token_type": token_data.token_type
             }
         )
-        
+
         if existing_token_data:
             token: Token = existing_token_data[0]
-            token.token = token_data.token 
+            token.token = token_data.token
         else:
             token = await self.create(token_data)
             self._session.add(token)
-
-
-        
-
-
-            
-
