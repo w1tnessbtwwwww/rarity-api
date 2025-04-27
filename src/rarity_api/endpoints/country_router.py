@@ -22,6 +22,7 @@ def mapping(country: Country) -> CountryData:
 
 @router.get("/")
 async def get_countries(
+        name: str = None,
         session: AsyncSession = Depends(get_session)
 ) -> List[CountryData]:
     repository = CountryRepository(session)

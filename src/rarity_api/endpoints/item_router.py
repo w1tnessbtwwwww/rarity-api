@@ -17,6 +17,11 @@ router = APIRouter(
 
 @router.get("/")
 async def get_items(
+        region_name: str = None,
+        country_name: str = None,
+        manufacturer_name: str = None,
+        # from_date: str = None,
+        # to_date: str = None,
         session: AsyncSession = Depends(get_session)
 ) -> List[ItemData]:
     repository = ItemRepository(session)
