@@ -22,6 +22,7 @@ def mapping(manufacturer: Manufacturer) -> ManufacturerData:
 
 @router.get("/")
 async def get_manufacturers(
+        name: str = None,
         session: AsyncSession = Depends(get_session)
 ) -> List[ManufacturerData]:
     repository = ManufacturerRepository(session)

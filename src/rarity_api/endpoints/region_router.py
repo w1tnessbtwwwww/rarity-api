@@ -21,8 +21,12 @@ def mapping(region: Region) -> RegionData:
 
 @router.get("/")
 async def get_regions(
+        name: str = None,
         session: AsyncSession = Depends(get_session)
 ) -> List[RegionData]:
+    # query = select(Region)
+    # if name is not None:
+    #     query = query.where(Region.name.icontains(name))
     repository = RegionRepository(session)
     regions: List[Region] = await repository.get_by_filter({})
     return [mapping(region) for region in regions]

@@ -1,8 +1,9 @@
-from typing import Dict, List, Any
+from datetime import datetime
+from typing import Dict, Any, Sequence
 
-from sqlalchemy import Column, Integer, String, ForeignKey, Table, select
+from sqlalchemy import Column, Integer, String, ForeignKey, Table, select, DateTime
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 
@@ -15,19 +16,20 @@ manufacturer_city_association = Table(
 
 
 class BaseRepository:
+    # model_class = declarativebase + id
     def __init__(self, session: AsyncSession, model_class):
         self.session = session
         self.model_class = model_class
 
-    async def get_by_filter(self, filters: Dict[str, Any]) -> List[Any]:
+    async def get_by_filter(self, filters: Dict[str, Any]) -> Sequence[Any]:
         query = select(self.model_class)
         for key, value in filters.items():
             query = query.where(getattr(self.model_class, key) == value)
         result = await self.session.execute(query)
         return result.scalars().all()
 
-    async def get_by_id(self, id: int) -> Any:
-        query = select(self.model_class).where(self.model_class.id == id)
+    async def get_by_id(self, id_: int) -> Any:
+        query = select(self.model_class).where(self.model_class.id == id_)
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
 
@@ -57,14 +59,14 @@ class BaseRepository:
 class Country(Base):
     __tablename__ = 'countries'
     id = Column(Integer, primary_key=True)
-    # name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False, unique=True)
     # regions = relationship("Region", back_populates="country")
 
 
 class Region(Base):
     __tablename__ = 'regions'
     id = Column(Integer, primary_key=True)
-    # name = Column(String, nullable=False)
+    name = Column(String, nullable=False)
     # country_id = Column(Integer, ForeignKey('countries.id'), nullable=False)
     # country = relationship("Country", back_populates="regions")
     # cities = relationship("City", back_populates="region")
@@ -73,7 +75,7 @@ class Region(Base):
 class City(Base):
     __tablename__ = 'cities'
     id = Column(Integer, primary_key=True)
-    # name = Column(String, nullable=False)
+    name = Column(String, nullable=False)
     # region_id = Column(Integer, ForeignKey('regions.id'), nullable=False)
     # region = relationship("Region", back_populates="cities")
     # manufacturers = relationship("Manufacturer", secondary=manufacturer_city_association, back_populates="cities")
@@ -82,7 +84,7 @@ class City(Base):
 class Manufacturer(Base):
     __tablename__ = 'manufacturers'
     id = Column(Integer, primary_key=True)
-    # name = Column(String, nullable=False)
+    name = Column(String, nullable=False)
     # cities = relationship("City", secondary=manufacturer_city_association, back_populates="manufacturers")
     # items = relationship("Item", back_populates="manufacturer")
 
@@ -90,12 +92,22 @@ class Manufacturer(Base):
 class Item(Base):
     __tablename__ = 'items'
     id = Column(Integer, primary_key=True)
-    # name = Column(String, nullable=False)
-    # description = Column(String)
+    name = Column(String, nullable=False)
+    description = Column(String)
     # production_years = Column(String)  # Можно хранить как JSON или просто строку с диапазонами
     # photo_links = Column(String)  # Можно хранить ссылки в формате JSON
     # manufacturer_id = Column(Integer, ForeignKey('manufacturers.id'), nullable=False)
     # manufacturer = relationship("Manufacturer", back_populates="items")
+
+
+class SearchHistory(Base):
+    __tablename__ = "search_history"
+
+    id = Column(Integer, primary_key=True)
+    region_name = Column(String, nullable=True)
+    country_name = Column(String, nullable=True)
+    manufacturer_name = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class CountryRepository(BaseRepository):
@@ -121,3 +133,8 @@ class ManufacturerRepository(BaseRepository):
 class ItemRepository(BaseRepository):
     def __init__(self, session: AsyncSession):
         super().__init__(session, Item)
+
+
+class SearchHistoryRepository(BaseRepository):
+    def __init__(self, session: AsyncSession):
+        super().__init__(session, SearchHistory)

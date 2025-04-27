@@ -22,6 +22,7 @@ def mapping(city: City) -> CityData:
 
 @router.get("/")
 async def get_cities(
+        name: str = None,
         session: AsyncSession = Depends(get_session)
 ) -> List[CityData]:
     repository = CityRepository(session)
