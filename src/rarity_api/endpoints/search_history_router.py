@@ -26,19 +26,3 @@ async def get_search_history(
         manufacturer_name=item.manufacturer_name,
         created_at=item.created_at
     ) for item in history]
-
-
-@router.post("/", response_model=SearchHistoryData)
-async def create_search_history(
-        search_data: SearchHistoryCreate,
-        session: AsyncSession = Depends(get_session)
-) -> SearchHistoryData:
-    repository = SearchHistoryRepository(session)
-    history_item = await repository.create(search_data)
-    return SearchHistoryData(
-        id=history_item.id,
-        region_name=history_item.region_name,
-        country_name=history_item.country_name,
-        manufacturer_name=history_item.manufacturer_name,
-        created_at=history_item.created_at
-    )
