@@ -1,6 +1,7 @@
 from typing import Dict, List, Any
+from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, ForeignKey, Table, select
+from sqlalchemy import Column, Integer, String, ForeignKey, Table, select, DateTime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, declarative_base
 
@@ -26,8 +27,8 @@ class BaseRepository:
         result = await self.session.execute(query)
         return result.scalars().all()
 
-    async def get_by_id(self, id: int) -> Any:
-        query = select(self.model_class).where(self.model_class.id == id)
+    async def get_by_id(self, id_: int) -> Any:
+        query = select(self.model_class).where(self.model_class.id == id_)
         result = await self.session.execute(query)
         return result.scalar_one_or_none()
 
@@ -98,6 +99,16 @@ class Item(Base):
     # manufacturer = relationship("Manufacturer", back_populates="items")
 
 
+class SearchHistory(Base):
+    __tablename__ = "search_history"
+
+    id = Column(Integer, primary_key=True)
+    region_name = Column(String, nullable=True)
+    country_name = Column(String, nullable=True)
+    manufacturer_name = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class CountryRepository(BaseRepository):
     def __init__(self, session: AsyncSession):
         super().__init__(session, Country)
@@ -121,3 +132,8 @@ class ManufacturerRepository(BaseRepository):
 class ItemRepository(BaseRepository):
     def __init__(self, session: AsyncSession):
         super().__init__(session, Item)
+
+
+class SearchHistoryRepository(BaseRepository):
+    def __init__(self, session: AsyncSession):
+        super().__init__(session, SearchHistory)

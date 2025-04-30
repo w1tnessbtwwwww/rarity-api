@@ -14,7 +14,7 @@ router = APIRouter(
 )
 
 
-@router.post("/register/")
+@router.post("/register")
 async def register_user(
         user_data: UserCreatePlainPassword,
         session=Depends(get_session)  # TODO: add type hint
