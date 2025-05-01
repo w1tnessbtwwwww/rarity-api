@@ -35,10 +35,19 @@ class ItemData(BaseModel):
     id: int
     name: str  # nullable=False
     description: str  # nullable=True
-    production_years: str  # Можно хранить как JSON или просто строку с диапазонами
-    photo_links: str  # Можно хранить ссылки в формате JSON
+    image: str
+    date_from: str  # Можно хранить как JSON или просто строку с диапазонами
+    date_to: str  # Можно хранить как JSON или просто строку с диапазонами
+    is_favourite: bool  # nullable!
     # manufacturer_id: int
     # manufacturer: ManufacturerData
+
+
+class ItemFullData(ItemData):
+    country: str
+    region: str
+    city: str
+    manufacturer: str
 
 
 class SearchHistoryData(BaseModel):

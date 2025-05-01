@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 
 from rarity_api.database import get_session
-from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate
+from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData
 from rarity_api.endpoints.repos import Item, ItemRepository, SearchHistoryRepository
 
 router = APIRouter(
@@ -41,7 +41,7 @@ async def get_items(
 async def get_item(
         item_id: int,
         session: AsyncSession = Depends(get_session)
-) -> ItemData:
+) -> ItemFullData:
     repository = ItemRepository(session)
     item = await repository.find_by_id(item_id)
     if not item:
@@ -67,8 +67,8 @@ async def list_favourites(
         session: AsyncSession = Depends(get_session)
 ) -> List[ItemData]:
     repository = ItemRepository(session)
-    ...
-    return [mapping(item) for item in items]
+    # ...
+    # return [mapping(item) for item in items]
 
 
 def mapping(item: Item) -> ItemData:
