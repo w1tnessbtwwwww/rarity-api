@@ -1,9 +1,9 @@
 from datetime import datetime
-from typing import Dict, Any, Sequence
 
-from sqlalchemy import Column, Integer, String, ForeignKey, Table, select, DateTime
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import Column, Integer, String, ForeignKey, Table, DateTime
 from sqlalchemy.orm import declarative_base
+
+from rarity_api.database import AbstractRepository
 
 Base = declarative_base()
 
@@ -13,47 +13,6 @@ manufacturer_city_association = Table(
     Column('manufacturer_id', Integer, ForeignKey('manufacturers.id'), primary_key=True),
     Column('city_id', Integer, ForeignKey('cities.id'), primary_key=True)
 )
-
-
-class BaseRepository:
-    # model_class = declarativebase + id
-    def __init__(self, session: AsyncSession, model_class):
-        self.session = session
-        self.model_class = model_class
-
-    async def get_by_filter(self, filters: Dict[str, Any]) -> Sequence[Any]:
-        query = select(self.model_class)
-        for key, value in filters.items():
-            query = query.where(getattr(self.model_class, key) == value)
-        result = await self.session.execute(query)
-        return result.scalars().all()
-
-    async def get_by_id(self, id_: int) -> Any:
-        query = select(self.model_class).where(self.model_class.id == id_)
-        result = await self.session.execute(query)
-        return result.scalar_one_or_none()
-
-    async def create(self, data: Dict[str, Any]) -> Any:
-        instance = self.model_class(**data)
-        self.session.add(instance)
-        await self.session.commit()
-        return instance
-
-    async def update(self, id: int, data: Dict[str, Any]) -> Any:
-        instance = await self.get_by_id(id)
-        if instance:
-            for key, value in data.items():
-                setattr(instance, key, value)
-            await self.session.commit()
-        return instance
-
-    async def delete(self, id: int) -> bool:
-        instance = await self.get_by_id(id)
-        if instance:
-            await self.session.delete(instance)
-            await self.session.commit()
-            return True
-        return False
 
 
 class Country(Base):
@@ -110,31 +69,25 @@ class SearchHistory(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
-class CountryRepository(BaseRepository):
-    def __init__(self, session: AsyncSession):
-        super().__init__(session, Country)
+class CountryRepository(AbstractRepository):
+    model = Country
 
 
-class RegionRepository(BaseRepository):
-    def __init__(self, session: AsyncSession):
-        super().__init__(session, Region)
+class RegionRepository(AbstractRepository):
+    model = Region
 
 
-class CityRepository(BaseRepository):
-    def __init__(self, session: AsyncSession):
-        super().__init__(session, City)
+class CityRepository(AbstractRepository):
+    model = City
 
 
-class ManufacturerRepository(BaseRepository):
-    def __init__(self, session: AsyncSession):
-        super().__init__(session, Manufacturer)
+class ManufacturerRepository(AbstractRepository):
+    model = Manufacturer
 
 
-class ItemRepository(BaseRepository):
-    def __init__(self, session: AsyncSession):
-        super().__init__(session, Item)
+class ItemRepository(AbstractRepository):
+    model = Item
 
 
-class SearchHistoryRepository(BaseRepository):
-    def __init__(self, session: AsyncSession):
-        super().__init__(session, SearchHistory)
+class SearchHistoryRepository(AbstractRepository):
+    model = SearchHistory
