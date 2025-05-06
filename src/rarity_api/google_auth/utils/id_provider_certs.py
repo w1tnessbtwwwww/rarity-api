@@ -19,7 +19,7 @@ class IdentityProviderCerts:
 
     async def get_certs(self):
         if not self.certs:
-            self.certs = await self.renew_certs()
+            await self.renew_certs()
         return self.certs
     
     def find_cert_by_kid(self, kid: str):
@@ -40,7 +40,7 @@ class IdentityProviderCerts:
         # 1. certs are outdated
         # 2. kid is incorrect
         
-        self.certs = await self.renew_certs()
+        await self.renew_certs()
         cert = self.find_cert_by_kid(kid)
         
         if not cert:
