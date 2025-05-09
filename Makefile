@@ -8,4 +8,4 @@ rev:
 	poetry run alembic revision --autogenerate
 
 mig:
-	poetry run alembic upprade head
+	poetry run alembic upgrade head
