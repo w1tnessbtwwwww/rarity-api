@@ -19,8 +19,8 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from rarity_api.endpoints import repos
-target_metadata = repos.Base.metadata
+from src.rarity_api.core.models.models import Base
+target_metadata = Base.metadata
 # target_metadata = None
 
 # other values from the config, defined by the needs of env.py,
