@@ -131,7 +131,7 @@ class Subscription(Base):
     status: Mapped[str] = mapped_column(String(100))
     expiration_date: Mapped[datetime] = mapped_column(TIMESTAMP)
     provider: Mapped[str] = mapped_column(String(100), nullable=True)  # ?
-    invoice_id: Mapped[str] = mapped_column(String(100))  # TODO!
+    invoice_id: Mapped[Optional[str]] = mapped_column(String(100))  # TODO!
     invoice_date: Mapped[datetime] = mapped_column(TIMESTAMP)
 
     user_id: Mapped[UUID] = mapped_column(UUID, ForeignKey('users.id'))

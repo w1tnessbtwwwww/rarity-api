@@ -140,8 +140,8 @@ class AuthService:
     ):
         user_db_answer = await UserRepository(self.session).create(UserCreate(email=user_data.email))
         # create trial subscription by default
-        sub = self.create_trial_subscription(user_db_answer.id)
-        saved = await SubscriptionRepository(self.session).create(sub)
+        # sub = self.create_trial_subscription(user_db_answer.id)
+        # saved = await SubscriptionRepository(self.session).create(sub)
 
         auth_db_answer = await AuthCredentialsRepository(self.session).create(
             AuthCredentialsCreate(

@@ -56,7 +56,8 @@ def create_jwt(
 
     return encode_jwt(
         payload=jwt_payload,
-        expire_minutes=expire_minutes
+        expire_minutes=expire_minutes,
+        
     )
 
 
