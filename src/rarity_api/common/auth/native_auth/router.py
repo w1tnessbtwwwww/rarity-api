@@ -68,7 +68,7 @@ async def auth_user_issue_jwt(
 
     response.set_cookie(
         key="session_id",
-        value=f"Bearer {id_token}",
+        value=f"{id_token}",
         httponly=True,  # to prevent JavaScript access
         # secure=True,
     )
