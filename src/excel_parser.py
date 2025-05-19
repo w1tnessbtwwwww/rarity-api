@@ -1,9 +1,65 @@
+import asyncio
+from pprint import pprint
+from typing import Union
 import openpyxl
 import os
-path = os.path.join(os.path.dirname(__file__), 'excels\\processed_porcelain_marks_final.xlsx')
+from pydantic import BaseModel
+from sqlalchemy import insert
+from rarity_api.core.database.connector import get_session
+from rarity_api.core.database.models.models import Item
+from rarity_api.core.database.repos.repos import CityRepository, CountryRepository, ItemRepository, ManufacturerRepository, RegionRepository
 
-workbook = openpyxl.load_workbook(path)
-sheet = workbook.active
 
-for row in sheet.iter_rows(min_row=2, values_only=True):
-    print(row)
+class ReadItem(BaseModel):
+    country: str
+    manufacturer_name: str | None
+    region: str | None
+    city: str
+    prod_year_start: int
+    prod_year_end: Union[int, str]
+    desc: str | None
+
+
+async def main():
+    async for session in get_session():
+        path = os.path.join(os.path.dirname(__file__), 'excels\\processed_porcelain_marks_final.xlsx')
+
+        workbook = openpyxl.load_workbook(path)
+        sheet = workbook.active
+
+        for row in sheet.iter_rows(min_row=10, max_row=200, values_only=True):
+            current_row = ReadItem(
+                country=row[1],
+                manufacturer_name=row[2],
+                region=row[3],
+                city=row[4],
+                prod_year_start=row[5],
+                prod_year_end=row[6],
+                desc=row[7]
+            )
+
+            print(current_row)
+
+
+            country_repository = CountryRepository(session)
+            city_repository = CityRepository(session)
+            region_repository = RegionRepository(session)
+            manufacturer_repository = ManufacturerRepository(session)
+
+            item_repository = ItemRepository(session)
+
+            country = await country_repository.get_or_create(name=current_row.country)
+            print(country)
+
+            region = await region_repository.get_or_create(name=current_row.region, country_id=country.id)
+            city = await city_repository.get_or_create(name=current_row.city, region_id=region.id)
+            manufacturer = await manufacturer_repository.get_or_create(name=current_row.manufacturer_name)
+            
+            item = await item_repository.create(
+                manufacturer_id=manufacturer.id,
+                description=current_row.desc,
+                production_years=f"{current_row.prod_year_start} - {current_row.prod_year_end if current_row.prod_year_end else "now"}"
+            )
+
+if __name__ == "__main__":
+    asyncio.run(main())

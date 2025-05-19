@@ -23,3 +23,4 @@ async def get_session():
             yield session
         finally:
             await session.close()
+
