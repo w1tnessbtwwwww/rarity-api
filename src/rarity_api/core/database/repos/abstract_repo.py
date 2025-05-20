@@ -31,8 +31,9 @@ class AbstractRepository(ABC):
     #     result = await self._session.execute(select(self.model))
     #     return result.scalars().all()
 
-    async def create(self, obj):
-        query = insert(self.model).values(**obj.model_dump()).returning(self.model)
+    async def create(self, **kwargs):
+        
+        query = insert(self.model).values(**kwargs).returning(self.model)
         result = await self._session.execute(query)
         await self._session.commit()
         return result.scalars().first()
@@ -58,6 +59,20 @@ class AbstractRepository(ABC):
         query = select(self.model).filter_by(**kwargs)
         result = await self._session.execute(query)
         return result.scalars().one_or_none()
+    
+    async def get_or_create(self, **kwargs):
+        query = (
+            select(self.model)
+            .filter_by(**kwargs)
+        )
+
+        result = await self._session.execute(query)
+        obj = result.scalars().first()
+
+        if obj is None:
+            obj = await self.create(**kwargs)
+            await self._session.commit()
+        return obj
 
     # async def delete_by_value(self, field_name, value):
     #     field = getattr(self.model, field_name)

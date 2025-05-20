@@ -3,8 +3,11 @@ from contextlib import asynccontextmanager
 from alembic import command
 from alembic.config import Config
 from fastapi import FastAPI
+from sqladmin import Admin
 
+from rarity_api.admin.user_admin import UserAdmin
 from rarity_api.common.http_client import HttpClient
+from rarity_api.core.database.connector import get_engine_sync
 from rarity_api.endpoints.city_router import router as city_router
 from rarity_api.endpoints.country_router import router as country_router
 from rarity_api.endpoints.item_router import router as item_router
@@ -31,6 +34,8 @@ app.include_router(manufacturer_router)
 app.include_router(item_router)
 app.include_router(search_history_router)
 
+admin = Admin(app, get_engine_sync())
+admin.add_view(UserAdmin)
 
 @asynccontextmanager
 async def lifespan():

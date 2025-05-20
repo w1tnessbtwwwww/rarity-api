@@ -45,11 +45,6 @@ class User(Base):
     auth_credentials = relationship("AuthCredentials", back_populates="user")
 
 
-class Country(Base):
-    __tablename__ = 'countries'
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(unique=True)
-    regions: Mapped[List["Region"]] = relationship("Region", back_populates="country")
 
 class AuthCredentials(Base):
     __tablename__ = 'auth_credentials'
@@ -65,6 +60,30 @@ class AuthCredentials(Base):
     __table_args__ = (
         UniqueConstraint('auth_type', 'user_id', name='uq_auth_type_user'),
     )
+
+class Country(Base):
+    __tablename__ = 'countries'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(unique=True)
+    regions: Mapped[List["Region"]] = relationship("Region", back_populates="country")
+    
+class Manufacturer(Base):
+    __tablename__ = 'manufacturers'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    cities: Mapped["City"] = relationship("City", secondary=manufacturer_city_association, back_populates="manufacturers")
+    items: Mapped["Item"] = relationship("Item", back_populates="manufacturer")
+
+
+class Item(Base):
+    __tablename__ = 'items'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[Optional[str]]
+    description: Mapped[str]
+    production_years: Mapped[str]  # Можно хранить как JSON или просто строку с диапазонами
+    photo_links: Mapped[Optional[str]]  # Можно хранить ссылки в формате JSON
+    manufacturer_id: Mapped[int] = mapped_column(Integer, ForeignKey('manufacturers.id'), nullable=False)
+    manufacturer: Mapped["Manufacturer"] = relationship("Manufacturer", back_populates="items")
 
 class Token(Base):
     __tablename__ = 'tokens'
@@ -91,28 +110,11 @@ class City(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
 
-    region_id: Mapped[int] = mapped_column(Integer, ForeignKey('regions.id'), nullable=False)
+    region_id: Mapped[int] = mapped_column(Integer, ForeignKey('regions.id'), nullable=True)
     region: Mapped["Region"] = relationship("Region", back_populates="cities")
     manufacturers: Mapped[List["Manufacturer"]] = relationship("Manufacturer", secondary=manufacturer_city_association, back_populates="cities")
 
 
-class Manufacturer(Base):
-    __tablename__ = 'manufacturers'
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
-    cities: Mapped["City"] = relationship("City", secondary=manufacturer_city_association, back_populates="manufacturers")
-    items: Mapped["Item"] = relationship("Item", back_populates="manufacturer")
-
-
-class Item(Base):
-    __tablename__ = 'items'
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
-    description: Mapped[str]
-    production_years: Mapped[str]  # Можно хранить как JSON или просто строку с диапазонами
-    photo_links: Mapped[str]  # Можно хранить ссылки в формате JSON
-    manufacturer_id: Mapped[int] = mapped_column(Integer, ForeignKey('manufacturers.id'), nullable=False)
-    manufacturer: Mapped["Manufacturer"] = relationship("Manufacturer", back_populates="items")
 
 
 class SearchHistory(Base):
