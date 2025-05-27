@@ -9,3 +9,6 @@ rev:
 
 mig:
 	poetry run alembic upgrade head
+
+excel:
+	poetry run python src/excel_parser.py

@@ -52,7 +52,7 @@ async def main():
             print(country)
 
             region = await region_repository.get_or_create(name=current_row.region, country_id=country.id)
-            city = await city_repository.get_or_create(name=current_row.city, region_id=region.id)
+            city = await city_repository.get_or_create(name=current_row.city, region_id=region.id if region else None)
             manufacturer = await manufacturer_repository.get_or_create(name=current_row.manufacturer_name)
             
             item = await item_repository.create(

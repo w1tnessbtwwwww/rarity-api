@@ -110,7 +110,7 @@ class City(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
 
-    region_id: Mapped[int] = mapped_column(Integer, ForeignKey('regions.id'), nullable=True)
+    region_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('regions.id'), nullable=True)
     region: Mapped["Region"] = relationship("Region", back_populates="cities")
     manufacturers: Mapped[List["Manufacturer"]] = relationship("Manufacturer", secondary=manufacturer_city_association, back_populates="cities")
 
