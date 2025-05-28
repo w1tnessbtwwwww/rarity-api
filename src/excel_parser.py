@@ -11,12 +11,12 @@ from rarity_api.core.database.repos.repos import CityRepository, CountryReposito
 
 
 class ReadItem(BaseModel):
-    country: str
+    country: str | None
     manufacturer_name: str | None
     region: str | None
-    city: str
-    prod_year_start: int
-    prod_year_end: Union[int, str]
+    city: str | None
+    prod_year_start: int | None
+    prod_year_end: Union[int, str] | None
     desc: str | None
 
 
@@ -27,7 +27,7 @@ async def main():
         workbook = openpyxl.load_workbook(path)
         sheet = workbook.active
 
-        for row in sheet.iter_rows(min_row=10, max_row=200, values_only=True):
+        for row in sheet.iter_rows(min_row=10, values_only=True):
             current_row = ReadItem(
                 country=row[1],
                 manufacturer_name=row[2],
@@ -52,7 +52,7 @@ async def main():
             print(country)
 
             region = await region_repository.get_or_create(name=current_row.region, country_id=country.id)
-            city = await city_repository.get_or_create(name=current_row.city, region_id=region.id)
+            city = await city_repository.get_or_create(name=current_row.city, region_id=region.id if region else None)
             manufacturer = await manufacturer_repository.get_or_create(name=current_row.manufacturer_name)
             
             item = await item_repository.create(

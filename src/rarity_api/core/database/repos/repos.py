@@ -89,6 +89,23 @@ class TokenRepository(AbstractRepository):
 class RegionRepository(AbstractRepository):
     model = models.Region
 
+    async def get_or_create(self, **kwargs):
+        if not kwargs.get("name", None):
+            return None
+
+        query = (
+            select(self.model)
+            .filter_by(**kwargs)
+        )
+
+        result = await self._session.execute(query)
+        obj = result.scalars().first()
+
+        if obj is None:
+            obj = await self.create(**kwargs)
+            await self._session.commit()
+        return obj
+
 class CityRepository(AbstractRepository):
     model = models.City
 
