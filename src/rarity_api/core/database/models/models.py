@@ -79,7 +79,7 @@ class Item(Base):
     __tablename__ = 'items'
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[Optional[str]]
-    description: Mapped[str]
+    description: Mapped[Optional[str]]
     production_years: Mapped[str]  # Можно хранить как JSON или просто строку с диапазонами
     photo_links: Mapped[Optional[str]]  # Можно хранить ссылки в формате JSON
     manufacturer_id: Mapped[int] = mapped_column(Integer, ForeignKey('manufacturers.id'), nullable=False)
