@@ -12,3 +12,6 @@ mig:
 
 excel:
 	poetry run python src/excel_parser.py
+
+csv:
+	poetry run python src/excel_parser_second.py
