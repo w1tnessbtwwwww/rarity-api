@@ -82,7 +82,7 @@ class TokenRepository(AbstractRepository):
             token: models.Token = existing_token_data[0]
             token.token = token_data.token
         else:
-            token = await self.create(token_data)
+            token = await self.create(**token_data.model_dump())
             self._session.add(token)
 
 

@@ -7,9 +7,9 @@ from rarity_api.common.auth.utils import (
     decode_jwt_without_verification
 )
 from rarity_api.common.logger import logger
-from rarity_api.database import get_session
-from rarity_api.google_auth.dependencies import authenticate as authenticate_google
-from rarity_api.native_auth.dependencies import authenticate as authenticate_native
+from rarity_api.core.database.connector import get_session
+from rarity_api.common.auth.google_auth.dependencies import authenticate as authenticate_google
+from rarity_api.common.auth.native_auth.dependencies import authenticate as authenticate_native
 
 
 def preprocess_auth(request: Request):
