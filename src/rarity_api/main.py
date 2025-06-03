@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from alembic import command
 from alembic.config import Config
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from sqladmin import Admin
 
 from rarity_api.common.auth.yandex_auth.router import router as yandex_router
@@ -20,6 +21,7 @@ from rarity_api.common.auth.google_auth.utils.id_provider_certs import IdentityP
 from rarity_api.common.auth.native_auth.router import router as plain_auth_router
 from rarity_api.endpoints.user_router import router as user_router
 from rarity_api.endpoints.payment_router import router as payment_router
+from rarity_api.settings import settings
 
 app = FastAPI(
     title="Rarity API",
@@ -40,6 +42,8 @@ app.include_router(search_history_router)
 app.include_router(yandex_router)
 app.include_router(user_router)
 app.include_router(payment_router)
+# Static files
+app.mount("/images", StaticFiles(directory=settings.images_dir_path), name="images")
 
 admin = Admin(app, get_engine_sync())
 admin.add_view(UserAdmin)
