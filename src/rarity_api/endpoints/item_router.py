@@ -18,6 +18,8 @@ router = APIRouter(
 
 @router.get("/")
 async def get_items(
+        page: int = 1,
+        offset: int = 50,
         region_name: str = None,
         country_name: str = None,
         manufacturer_name: str = None,
@@ -35,7 +37,7 @@ async def get_items(
     # await history_repository.create(search_history)
     # Get items
     repository = ItemRepository(session)
-    items = await repository.find_items(region=region_name, country=country_name, manufacturer=manufacturer_name)
+    items = await repository.find_items(page, offset, region=region_name, country=country_name, manufacturer=manufacturer_name)
     return [mapping(item) for item in items]
 
 
@@ -74,10 +76,16 @@ async def list_favourites(
 
 
 def mapping(item: Item) -> ItemData:
+
+    years_array = item.production_years.split(" - ")
+    years_end = int(years_array[1] if years_array[1] != "now" else 0)
+    print(years_array)
+
     return ItemData(
         id=item.id,
         name=item.name,
         description=item.description,
-        # production_years=item.production_years,
+        year_from=int(years_array[0] if years_array[0] != "None" else 0),
+        year_to=years_end
         # image=item.photo_links
     )

@@ -138,17 +138,15 @@ class AuthService:
             self,
             user_data: UserCreateHashedPassword
     ):
-        user_db_answer = await UserRepository(self.session).create(UserCreate(email=user_data.email))
+        user_db_answer = await UserRepository(self.session).create(email=user_data.email)
         # create trial subscription by default
         # sub = self.create_trial_subscription(user_db_answer.id)
         # saved = await SubscriptionRepository(self.session).create(sub)
 
         auth_db_answer = await AuthCredentialsRepository(self.session).create(
-            AuthCredentialsCreate(
-                user_id=user_db_answer.id,
-                auth_type=AuthType.NATIVE.value,
-                password_hash=user_data.password_hash
-            )
+            user_id=user_db_answer.id,
+            auth_type=AuthType.NATIVE.value,
+            password_hash=user_data.password_hash
         )
 
         await self.session.commit()

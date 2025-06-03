@@ -94,7 +94,7 @@ class TokenRepository(AbstractRepository):
             token: models.Token = existing_token_data[0]
             token.token = token_data.token
         else:
-            token = await self.create(token_data)
+            token = await self.create(**token_data.model_dump())
             self._session.add(token)
 
 
@@ -152,12 +152,14 @@ class ItemRepository(AbstractRepository):
 
     async def find_items(
             self,
+            page: int,
+            offset: int,
             # city: str | None = None,
             region: str | None = None,
             country: str | None = None,
             manufacturer: str | None = None
     ):
-        stmt = select(Item).join(Item.manufacturer)
+        stmt = select(Item).join(Item.manufacturer).limit(offset).offset((page - 1) * offset)
         # if country or region or city:
         if country or region:
             stmt = stmt.join(Manufacturer.cities).join(City.region).join(Region.country)
@@ -172,6 +174,7 @@ class ItemRepository(AbstractRepository):
         stmt = stmt.options(
             selectinload(Item.manufacturer).selectinload(Manufacturer.cities)
         )
+
         result = await self._session.execute(stmt)
         return result.scalars().all()
 

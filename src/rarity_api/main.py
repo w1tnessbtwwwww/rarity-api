@@ -18,11 +18,14 @@ from rarity_api.endpoints.search_history_router import router as search_history_
 from rarity_api.common.auth.google_auth.router import router as google_auth_router
 from rarity_api.common.auth.google_auth.utils.id_provider_certs import IdentityProviderCerts
 from rarity_api.common.auth.native_auth.router import router as plain_auth_router
+from rarity_api.endpoints.user_router import router as user_router
+from rarity_api.endpoints.payment_router import router as payment_router
 
 app = FastAPI(
     title="Rarity API",
     description="API for managing porcelain rarity data",
-    version="1.0.0"
+    version="1.0.0",
+    root_path="/api"
 )
 
 app.include_router(google_auth_router)
@@ -35,6 +38,8 @@ app.include_router(manufacturer_router)
 app.include_router(item_router)
 app.include_router(search_history_router)
 app.include_router(yandex_router)
+app.include_router(user_router)
+app.include_router(payment_router)
 
 admin = Admin(app, get_engine_sync())
 admin.add_view(UserAdmin)

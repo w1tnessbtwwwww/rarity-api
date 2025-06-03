@@ -64,6 +64,9 @@ class Settings(BaseSettings):
     stripe_monthly_pricing_id: str = Field(alias="STRIPE_MONTHLY_PRICING_ID")
     stripe_yearly_pricing_id: str = Field(alias="STRIPE_YEARLY_PRICING_ID")
 
+    yookassa_api_key: str = Field(alias="YOOKASSA_API_KEY")
+    yookassa_shop_id: str = Field(alias="YOOKASSA_SHOP_ID")
+
     native_auth_jwt: NativeAuthJWT = NativeAuthJWT()
 
     @property
