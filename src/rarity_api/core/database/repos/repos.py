@@ -1,12 +1,14 @@
 from typing import Sequence
 from uuid import UUID
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+
 from rarity_api.common.auth.schemas.auth_credentials import AuthCredentialsCreate
 from rarity_api.common.auth.schemas.token import TokenCreate
 from rarity_api.common.auth.schemas.user import UserCreate
 from rarity_api.common.auth.google_auth.schemas.oidc_user import UserInfoFromIDProvider
 from rarity_api.core.database.models import models
-from rarity_api.core.database.models.models import Country, City, Manufacturer, Region
+from rarity_api.core.database.models.models import Country, City, Manufacturer, Region, Item
 from rarity_api.core.database.repos.abstract_repo import AbstractRepository
 
 class SubscriptionRepository(AbstractRepository):
@@ -146,7 +148,32 @@ class ManufacturerRepository(AbstractRepository):
 
 
 class ItemRepository(AbstractRepository):
-    model = models.Item
+    model = Item
+
+    async def find_items(
+            self,
+            # city: str | None = None,
+            region: str | None = None,
+            country: str | None = None,
+            manufacturer: str | None = None
+    ):
+        stmt = select(Item).join(Item.manufacturer)
+        # if country or region or city:
+        if country or region:
+            stmt = stmt.join(Manufacturer.cities).join(City.region).join(Region.country)
+        if country:
+            stmt = stmt.where(Country.name == country)
+        if region:
+            stmt = stmt.where(Region.name == region)
+        # if city:
+        #     stmt = stmt.where(City.name == city)
+        if manufacturer:
+            stmt = stmt.where(Manufacturer.name == manufacturer)
+        stmt = stmt.options(
+            selectinload(Item.manufacturer).selectinload(Manufacturer.cities)
+        )
+        result = await self._session.execute(stmt)
+        return result.scalars().all()
 
 class SearchHistoryRepository(AbstractRepository):
     model = models.SearchHistory
