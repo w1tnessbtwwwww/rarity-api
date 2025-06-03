@@ -1,4 +1,4 @@
-from typing import Any, Coroutine, Sequence
+from typing import Sequence
 from uuid import UUID
 from sqlalchemy import select
 from rarity_api.common.auth.schemas.auth_credentials import AuthCredentialsCreate
@@ -6,7 +6,7 @@ from rarity_api.common.auth.schemas.token import TokenCreate
 from rarity_api.common.auth.schemas.user import UserCreate
 from rarity_api.common.auth.google_auth.schemas.oidc_user import UserInfoFromIDProvider
 from rarity_api.core.database.models import models
-from rarity_api.core.database.models.models import Country, City, Manufacturer
+from rarity_api.core.database.models.models import Country, City, Manufacturer, Region
 from rarity_api.core.database.repos.abstract_repo import AbstractRepository
 
 class SubscriptionRepository(AbstractRepository):
@@ -97,7 +97,14 @@ class TokenRepository(AbstractRepository):
 
 
 class RegionRepository(AbstractRepository):
-    model = models.Region
+    model = Region
+
+    async def find_by_filter(self, name: str) -> Sequence[Region]:
+        s = select(Region)
+        if name:
+            s = s.where(Region.name.icontains(name))
+        result = await self._session.execute(s)
+        return result.scalars().all()
 
     async def get_or_create(self, **kwargs):
         if not kwargs.get("name", None):
