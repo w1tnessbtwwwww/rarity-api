@@ -1,34 +1,29 @@
-FROM python:3.11 AS requirements-stage
+# Используем официальный образ Python
+FROM python:3.13-slim-bullseye AS prod
 
-WORKDIR /tmp
+# Устанавливаем необходимые зависимости
+RUN apt-get update && apt-get install -y \
+    gcc \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
+# Устанавливаем Poetry через pip
 RUN pip install poetry
-RUN poetry self add poetry-plugin-export
 
-COPY ./pyproject.toml ./poetry.lock* /tmp/
-RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
+# Создаем директории для проекта
+WORKDIR /app/rarity_api
 
-FROM python:3.11-slim
+# Копируем pyproject.toml и poetry.lock
+COPY pyproject.toml poetry.lock /app/rarity_api/
 
-WORKDIR /code
+# Настраиваем Poetry
+RUN poetry config virtualenvs.create false
 
-COPY --from=requirements-stage /tmp/requirements.txt /code/requirements.txt
+# Устанавливаем зависимости
+RUN poetry install --no-root
 
-RUN apt-get update && apt-get install -y libpq-dev
+# Очищаем кэш
+RUN apt-get purge -y && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
-
-COPY ./src /code/src
-COPY ./alembic.ini /code/src
-COPY ./alembic /code/alembic/src
-COPY ./certs /code/src/certs/
-
-# Очень важно! src будет добавлен в PYTHONPATH
-ENV PYTHONPATH=/code/src
-
-# Оставляем рабочую директорию на уровне /code
-WORKDIR /code
-
-# Запускаем как модуль
-#CMD ["python", "-m", "rarity_api.main"]
-CMD ["uvicorn", "rarity_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Копируем приложение
+COPY . /app/rarity_api/

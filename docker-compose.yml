@@ -1,12 +1,19 @@
 services:
   api:
-    build: .
+    container_name: rarity_api
+    build:
+      context: .
+    restart: always
+    command: ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "src/rarity_api"]
     env_file:
       - .env
     ports:
-      - '8000:8000'
+      - 8000:8000
+    
+    depends_on:
+      - db
   db:
-    image: postgres:17
+    image: postgres:16.4
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
