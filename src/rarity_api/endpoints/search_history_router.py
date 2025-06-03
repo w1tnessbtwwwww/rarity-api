@@ -15,7 +15,7 @@ router = APIRouter(
 
 
 @router.get("/", response_model=List[SearchHistoryData])
-async def get_search_history(
+async def get_history(
         session: AsyncSession = Depends(get_session)
 ) -> List[SearchHistoryData]:
     repository = SearchHistoryRepository(session)
@@ -27,3 +27,18 @@ async def get_search_history(
         manufacturer_name=item.manufacturer_name,
         created_at=item.created_at
     ) for item in history]
+
+
+@router.get("/{item_id}", response_model=SearchHistoryData)
+async def get_history_by_id(
+        session: AsyncSession = Depends(get_session)
+) -> SearchHistoryData:
+    repository = SearchHistoryRepository(session)
+    item = await repository.get_by_filter({})
+    return SearchHistoryData(
+        id=item.id,
+        region_name=item.region_name,
+        country_name=item.country_name,
+        manufacturer_name=item.manufacturer_name,
+        created_at=item.created_at
+    )

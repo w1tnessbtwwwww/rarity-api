@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Sequence
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,5 +29,5 @@ async def get_countries(
         session: AsyncSession = Depends(get_session)
 ) -> List[CountryData]:
     repository = CountryRepository(session)
-    countries: List[Country] = await repository.get_by_filter({})
+    countries: Sequence[Country] = await repository.find_by_filter(name)
     return [mapping(country) for country in countries]

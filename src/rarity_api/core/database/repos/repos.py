@@ -1,3 +1,4 @@
+from typing import Any, Coroutine, Sequence
 from uuid import UUID
 from sqlalchemy import select
 from rarity_api.common.auth.schemas.auth_credentials import AuthCredentialsCreate
@@ -5,6 +6,7 @@ from rarity_api.common.auth.schemas.token import TokenCreate
 from rarity_api.common.auth.schemas.user import UserCreate
 from rarity_api.common.auth.google_auth.schemas.oidc_user import UserInfoFromIDProvider
 from rarity_api.core.database.models import models
+from rarity_api.core.database.models.models import Country, City, Manufacturer
 from rarity_api.core.database.repos.abstract_repo import AbstractRepository
 
 class SubscriptionRepository(AbstractRepository):
@@ -53,7 +55,15 @@ class UserRepository(AbstractRepository):
         return result.first()
 
 class CountryRepository(AbstractRepository):
-    model = models.Country
+    model = Country
+
+    async def find_by_filter(self, name: str) -> Sequence[Country]:
+        s = select(Country)
+        if name:
+            s = s.where(Country.name.icontains(name))
+        result = await self._session.execute(s)
+        return result.scalars().all()
+
 
 class AuthCredentialsRepository(AbstractRepository):
     model = models.AuthCredentials
@@ -107,10 +117,26 @@ class RegionRepository(AbstractRepository):
         return obj
 
 class CityRepository(AbstractRepository):
-    model = models.City
+    model = City
+
+    async def find_by_filter(self, name: str) -> Sequence[City]:
+        s = select(City)
+        if name:
+            s = s.where(City.name.icontains(name))
+        result = await self._session.execute(s)
+        return result.scalars().all()
+
 
 class ManufacturerRepository(AbstractRepository):
-    model = models.Manufacturer
+    model = Manufacturer
+
+    async def find_by_filter(self, name: str) -> Sequence[Manufacturer]:
+        s = select(Manufacturer)
+        if name:
+            s = s.where(Manufacturer.name.icontains(name))
+        result = await self._session.execute(s)
+        return result.scalars().all()
+
 
 class ItemRepository(AbstractRepository):
     model = models.Item
