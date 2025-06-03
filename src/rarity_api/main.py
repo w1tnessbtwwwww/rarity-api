@@ -24,7 +24,8 @@ from rarity_api.endpoints.payment_router import router as payment_router
 app = FastAPI(
     title="Rarity API",
     description="API for managing porcelain rarity data",
-    version="1.0.0"
+    version="1.0.0",
+    root_path="/api"
 )
 
 app.include_router(google_auth_router)
