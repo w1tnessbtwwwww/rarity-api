@@ -5,21 +5,21 @@ from alembic.config import Config
 from fastapi import FastAPI
 from sqladmin import Admin
 
-from rarity_api.common.auth.yandex_auth.router import router as yandex_router
-from rarity_api.admin.user_admin import UserAdmin
-from rarity_api.common.http_client import HttpClient
-from rarity_api.core.database.connector import get_engine_sync
-from rarity_api.endpoints.city_router import router as city_router
-from rarity_api.endpoints.country_router import router as country_router
-from rarity_api.endpoints.item_router import router as item_router
-from rarity_api.endpoints.manufacturer_router import router as manufacturer_router
-from rarity_api.endpoints.region_router import router as region_router
-from rarity_api.endpoints.search_history_router import router as search_history_router
-from rarity_api.common.auth.google_auth.router import router as google_auth_router
-from rarity_api.common.auth.google_auth.utils.id_provider_certs import IdentityProviderCerts
-from rarity_api.common.auth.native_auth.router import router as plain_auth_router
-from rarity_api.endpoints.user_router import router as user_router
-from rarity_api.endpoints.payment_router import router as payment_router
+from .common.auth.yandex_auth.router import router as yandex_router
+from .admin.user_admin import UserAdmin
+from .common.http_client import HttpClient
+from .core.database.connector import get_engine_sync
+from .endpoints.city_router import router as city_router
+from .endpoints.country_router import router as country_router
+from .endpoints.item_router import router as item_router
+from .endpoints.manufacturer_router import router as manufacturer_router
+from .endpoints.region_router import router as region_router
+from .endpoints.search_history_router import router as search_history_router
+from .common.auth.google_auth.router import router as google_auth_router
+from .common.auth.google_auth.utils.id_provider_certs import IdentityProviderCerts
+from .common.auth.native_auth.router import router as plain_auth_router
+from .endpoints.user_router import router as user_router
+from .endpoints.payment_router import router as payment_router
 
 app = FastAPI(
     title="Rarity API",
