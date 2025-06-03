@@ -20,7 +20,8 @@ def mapping(manufacturer: Manufacturer) -> ManufacturerData:
     return ManufacturerData(
         id=manufacturer.id,
         name=manufacturer.name,
-        cities=[CityData(id=city.id, name=city.name) for city in manufacturer.cities]
+        cities=[]
+        # cities=[CityData(id=city.id, name=city.name) for city in manufacturer.cities]
     )
 
 @router.get("/")
@@ -29,5 +30,5 @@ async def get_manufacturers(
         session: AsyncSession = Depends(get_session)
 ) -> List[ManufacturerData]:
     repository = ManufacturerRepository(session)
-    manufacturers = await repository.get_by_filter({})
+    manufacturers = await repository.find_by_filter(name)
     return [mapping(manufacturer) for manufacturer in manufacturers]

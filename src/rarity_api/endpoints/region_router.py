@@ -1,6 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends
+from sqlalchemy import Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from rarity_api.endpoints.datas import RegionData
@@ -26,9 +27,6 @@ async def get_regions(
         name: str = None,
         session: AsyncSession = Depends(get_session)
 ) -> List[RegionData]:
-    # query = select(Region)
-    # if name is not None:
-    #     query = query.where(Region.name.icontains(name))
     repository = RegionRepository(session)
-    regions: List[Region] = await repository.get_by_filter({})
+    regions: Sequence[Region] = await repository.find_by_filter(name)
     return [mapping(region) for region in regions]

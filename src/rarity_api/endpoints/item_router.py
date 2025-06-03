@@ -6,7 +6,6 @@ from starlette.responses import Response
 
 from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData
 
-# refactored
 from rarity_api.core.database.connector import get_session
 from rarity_api.core.database.models.models import Item
 from rarity_api.core.database.repos.repos import ItemRepository, SearchHistoryRepository
@@ -32,11 +31,11 @@ async def get_items(
         country_name=country_name,
         manufacturer_name=manufacturer_name
     )
-    history_repository = SearchHistoryRepository(session)
-    await history_repository.create(search_history)
+    # history_repository = SearchHistoryRepository(session)
+    # await history_repository.create(search_history)
     # Get items
     repository = ItemRepository(session)
-    items = await repository.get_by_filter({})
+    items = await repository.find_items(region=region_name, country=country_name, manufacturer=manufacturer_name)
     return [mapping(item) for item in items]
 
 
@@ -79,6 +78,6 @@ def mapping(item: Item) -> ItemData:
         id=item.id,
         name=item.name,
         description=item.description,
-        production_years=item.production_years,
-        photo_links=item.photo_links
+        # production_years=item.production_years,
+        # image=item.photo_links
     )

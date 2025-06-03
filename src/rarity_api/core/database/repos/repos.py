@@ -1,10 +1,14 @@
+from typing import Sequence
 from uuid import UUID
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+
 from rarity_api.common.auth.schemas.auth_credentials import AuthCredentialsCreate
 from rarity_api.common.auth.schemas.token import TokenCreate
 from rarity_api.common.auth.schemas.user import UserCreate
 from rarity_api.common.auth.google_auth.schemas.oidc_user import UserInfoFromIDProvider
 from rarity_api.core.database.models import models
+from rarity_api.core.database.models.models import Country, City, Manufacturer, Region, Item
 from rarity_api.core.database.repos.abstract_repo import AbstractRepository
 
 class SubscriptionRepository(AbstractRepository):
@@ -53,7 +57,15 @@ class UserRepository(AbstractRepository):
         return result.first()
 
 class CountryRepository(AbstractRepository):
-    model = models.Country
+    model = Country
+
+    async def find_by_filter(self, name: str) -> Sequence[Country]:
+        s = select(Country)
+        if name:
+            s = s.where(Country.name.icontains(name))
+        result = await self._session.execute(s)
+        return result.scalars().all()
+
 
 class AuthCredentialsRepository(AbstractRepository):
     model = models.AuthCredentials
@@ -87,7 +99,14 @@ class TokenRepository(AbstractRepository):
 
 
 class RegionRepository(AbstractRepository):
-    model = models.Region
+    model = Region
+
+    async def find_by_filter(self, name: str) -> Sequence[Region]:
+        s = select(Region)
+        if name:
+            s = s.where(Region.name.icontains(name))
+        result = await self._session.execute(s)
+        return result.scalars().all()
 
     async def get_or_create(self, **kwargs):
         if not kwargs.get("name", None):
@@ -107,13 +126,54 @@ class RegionRepository(AbstractRepository):
         return obj
 
 class CityRepository(AbstractRepository):
-    model = models.City
+    model = City
+
+    async def find_by_filter(self, name: str) -> Sequence[City]:
+        s = select(City)
+        if name:
+            s = s.where(City.name.icontains(name))
+        result = await self._session.execute(s)
+        return result.scalars().all()
+
 
 class ManufacturerRepository(AbstractRepository):
-    model = models.Manufacturer
+    model = Manufacturer
+
+    async def find_by_filter(self, name: str) -> Sequence[Manufacturer]:
+        s = select(Manufacturer)
+        if name:
+            s = s.where(Manufacturer.name.icontains(name))
+        result = await self._session.execute(s)
+        return result.scalars().all()
+
 
 class ItemRepository(AbstractRepository):
-    model = models.Item
+    model = Item
+
+    async def find_items(
+            self,
+            # city: str | None = None,
+            region: str | None = None,
+            country: str | None = None,
+            manufacturer: str | None = None
+    ):
+        stmt = select(Item).join(Item.manufacturer)
+        # if country or region or city:
+        if country or region:
+            stmt = stmt.join(Manufacturer.cities).join(City.region).join(Region.country)
+        if country:
+            stmt = stmt.where(Country.name == country)
+        if region:
+            stmt = stmt.where(Region.name == region)
+        # if city:
+        #     stmt = stmt.where(City.name == city)
+        if manufacturer:
+            stmt = stmt.where(Manufacturer.name == manufacturer)
+        stmt = stmt.options(
+            selectinload(Item.manufacturer).selectinload(Manufacturer.cities)
+        )
+        result = await self._session.execute(stmt)
+        return result.scalars().all()
 
 class SearchHistoryRepository(AbstractRepository):
     model = models.SearchHistory
