@@ -11,10 +11,10 @@ RUN apt-get update && apt-get install -y \
 RUN pip install poetry
 
 # Создаем директории для проекта
-WORKDIR /app/rarity_api
+WORKDIR /app/rarityapi
 
 # Копируем pyproject.toml и poetry.lock
-COPY pyproject.toml poetry.lock /app/rarity_api/
+COPY pyproject.toml poetry.lock /app/rarityapi/
 
 # Настраиваем Poetry
 RUN poetry config virtualenvs.create false
@@ -26,4 +26,4 @@ RUN poetry install --no-root
 RUN apt-get purge -y && rm -rf /var/lib/apt/lists/*
 
 # Копируем приложение
-COPY . /app/rarity_api/
+COPY . /app/rarityapi/
