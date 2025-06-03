@@ -29,5 +29,5 @@ async def get_cities(
         session: AsyncSession = Depends(get_session)
 ) -> List[CityData]:
     repository = CityRepository(session)
-    cities = await repository.get_by_filter({})
+    cities = await repository.find_by_filter(name)
     return [mapping(city) for city in cities]

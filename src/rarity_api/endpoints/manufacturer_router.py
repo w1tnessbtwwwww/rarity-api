@@ -29,5 +29,5 @@ async def get_manufacturers(
         session: AsyncSession = Depends(get_session)
 ) -> List[ManufacturerData]:
     repository = ManufacturerRepository(session)
-    manufacturers = await repository.get_by_filter({})
+    manufacturers = await repository.find_by_filter(name)
     return [mapping(manufacturer) for manufacturer in manufacturers]
