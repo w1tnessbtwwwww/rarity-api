@@ -17,4 +17,4 @@ csv:
 	poetry run python src/excel_parser_second.py
 
 deploy:
-	docker compose --env-file .env up --build
+	docker compose --env-file .env up --build -d
