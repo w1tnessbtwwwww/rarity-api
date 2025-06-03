@@ -20,7 +20,8 @@ def mapping(manufacturer: Manufacturer) -> ManufacturerData:
     return ManufacturerData(
         id=manufacturer.id,
         name=manufacturer.name,
-        cities=[CityData(id=city.id, name=city.name) for city in manufacturer.cities]
+        cities=[]
+        # cities=[CityData(id=city.id, name=city.name) for city in manufacturer.cities]
     )
 
 @router.get("/")

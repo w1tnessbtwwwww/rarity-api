@@ -33,12 +33,12 @@ class ManufacturerData(BaseModel):
 
 class ItemData(BaseModel):
     id: int
-    name: str  # nullable=False
-    description: str  # nullable=True
-    image: str
-    year_from: int
-    year_to: int
-    is_favourite: bool  # nullable!
+    name: str | None = None  # nullable=False
+    description: str | None = None  # nullable=True
+    image: str | None = None
+    year_from: int | None = None
+    year_to: int | None = None
+    is_favourite: bool = False  # nullable!
     # manufacturer_id: int
     # manufacturer: ManufacturerData
 
