@@ -8,7 +8,7 @@ from rarity_api.common.auth.schemas.token import TokenCreate
 from rarity_api.common.auth.schemas.user import UserCreate
 from rarity_api.common.auth.google_auth.schemas.oidc_user import UserInfoFromIDProvider
 from rarity_api.core.database.models import models
-from rarity_api.core.database.models.models import Country, City, Manufacturer, Region, Item
+from rarity_api.core.database.models.models import Country, City, Manufacturer, Region, Item, SearchHistory
 from rarity_api.core.database.repos.abstract_repo import AbstractRepository
 
 class SubscriptionRepository(AbstractRepository):
@@ -179,4 +179,19 @@ class ItemRepository(AbstractRepository):
         return result.scalars().all()
 
 class SearchHistoryRepository(AbstractRepository):
-    model = models.SearchHistory
+    model = SearchHistory
+
+    async def create(self, search_history):
+        self._session.add(search_history)
+        await self._session.commit()
+        await self._session.refresh(search_history)
+
+    async def find_last(self) -> Sequence[SearchHistory]:
+        s = select(SearchHistory).order_by(SearchHistory.created_at.desc()).limit(10)
+        result = await self._session.execute(s)
+        return result.scalars().all()
+
+    async def find_by_id(self, _id: int) -> SearchHistory | None:
+        s = select(SearchHistory).where(SearchHistory.id == _id)
+        result = await self._session.execute(s)
+        return result.scalars().first()
