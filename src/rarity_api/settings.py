@@ -67,6 +67,8 @@ class Settings(BaseSettings):
     yookassa_api_key: str = Field(alias="YOOKASSA_API_KEY")
     yookassa_shop_id: str = Field(alias="YOOKASSA_SHOP_ID")
 
+    images_dir_path: str = Field(alias="IMAGES_DIR_PATH")
+
     native_auth_jwt: NativeAuthJWT = NativeAuthJWT()
 
     @property
