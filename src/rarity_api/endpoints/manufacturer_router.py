@@ -21,6 +21,7 @@ def mapping(manufacturer: Manufacturer) -> ManufacturerData:
         id=manufacturer.id,
         name=manufacturer.name,
         cities=[]
+        # TODO!
         # cities=[CityData(id=city.id, name=city.name) for city in manufacturer.cities]
     )
 
