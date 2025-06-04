@@ -23,7 +23,7 @@ async def get_history(
     return [mapping(item) for item in history]
 
 
-@router.get("/{item_id}")
+@router.get("/{item_id}", response_model=SearchHistoryData)
 async def get_history_by_id(
         item_id: int,
         session: AsyncSession = Depends(get_session),
