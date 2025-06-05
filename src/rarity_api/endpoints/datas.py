@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
-
-
+from pydantic import field_validator
+from rarity_api.settings import settings
 class CityData(BaseModel):
     id: int
     name: str  # nullable=False
@@ -39,6 +39,11 @@ class ItemData(BaseModel):
     year_from: int | None = None
     year_to: int | None = None
     is_favourite: bool = False  # nullable!
+    photo_link: str | None = None
+
+    @field_validator("photo_link")
+    def validate_photo(cls, value):
+        return f"{settings.images_dir_path}/"
     # manufacturer_id: int
     # manufacturer: ManufacturerData
 

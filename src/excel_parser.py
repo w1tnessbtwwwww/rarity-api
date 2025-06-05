@@ -11,6 +11,7 @@ from rarity_api.core.database.repos.repos import CityRepository, CountryReposito
 
 
 class ReadItem(BaseModel):
+    rp: str | None
     country: str | None
     manufacturer_name: str | None
     region: str | None
@@ -29,6 +30,7 @@ async def main():
 
         for row in sheet.iter_rows(min_row=10, values_only=True):
             current_row = ReadItem(
+                rp=row[0],
                 country=row[1],
                 manufacturer_name=row[2],
                 region=row[3],

@@ -13,9 +13,9 @@ services:
     depends_on:
       - db
     volumes:
-      - ./data/images:/app/images
+      - ./data/images:/src/rarity_api/images
   db:
-    image: postgres:17
+    image: postgres:16.4
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

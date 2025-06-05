@@ -78,6 +78,7 @@ class Manufacturer(Base):
 class Item(Base):
     __tablename__ = 'items'
     id: Mapped[int] = mapped_column(primary_key=True)
+    rp: Mapped[Optional[str]]
     name: Mapped[Optional[str]]
     description: Mapped[Optional[str]]
     production_years: Mapped[str]  # Можно хранить как JSON или просто строку с диапазонами
