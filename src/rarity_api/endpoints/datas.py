@@ -43,7 +43,7 @@ class ItemData(BaseModel):
 
     @field_validator("rp")
     def validate_photo(cls, value):
-        return f"{settings.api_base_url}/{settings.images_dir_path}/mark_{value}.png" if value is not None else None
+        return f"{settings.api_base_url}{settings.images_dir_path}/mark_{value}.png" if value is not None else None
     # manufacturer_id: int
     # manufacturer: ManufacturerData
 
