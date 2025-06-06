@@ -43,7 +43,7 @@ app.include_router(yandex_router)
 app.include_router(user_router)
 app.include_router(payment_router)
 # Static files
-# app.mount("/images", StaticFiles(directory="src/rarity_api/images"), name="images")
+app.mount("/images", StaticFiles(directory="src/rarity_api/images"), name="images")
 
 admin = Admin(app, get_engine_sync())
 admin.add_view(UserAdmin)
