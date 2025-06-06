@@ -7,7 +7,7 @@ from starlette.responses import Response
 from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData
 
 from rarity_api.core.database.connector import get_session
-from rarity_api.core.database.models.models import Item
+from rarity_api.core.database.models.models import Item, SearchHistory
 from rarity_api.core.database.repos.repos import ItemRepository, SearchHistoryRepository
 
 router = APIRouter(
@@ -28,14 +28,13 @@ async def get_items(
         session: AsyncSession = Depends(get_session)
 ) -> List[ItemData]:
     # Save search history
-    search_history = SearchHistoryCreate(
+    search_history = SearchHistory(
         region_name=region_name,
         country_name=country_name,
         manufacturer_name=manufacturer_name
     )
-    # history_repository = SearchHistoryRepository(session)
-    # await history_repository.create(search_history)
-    # Get items
+    history_repository = SearchHistoryRepository(session)
+    await history_repository.create(search_history)
     repository = ItemRepository(session)
     items = await repository.find_items(page, offset, region=region_name, country=country_name, manufacturer=manufacturer_name)
     return [mapping(item) for item in items]
