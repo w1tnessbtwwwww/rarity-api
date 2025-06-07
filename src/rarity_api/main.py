@@ -10,6 +10,7 @@ from rarity_api.common.auth.yandex_auth.router import router as yandex_router
 from rarity_api.admin.user_admin import UserAdmin
 from rarity_api.common.http_client import HttpClient
 from rarity_api.core.database.connector import get_engine_sync
+from rarity_api.endpoints import verification_router
 from rarity_api.endpoints.city_router import router as city_router
 from rarity_api.endpoints.country_router import router as country_router
 from rarity_api.endpoints.item_router import router as item_router
@@ -50,6 +51,7 @@ app.include_router(search_history_router)
 app.include_router(yandex_router)
 app.include_router(user_router)
 app.include_router(payment_router)
+app.include_router(verification_router)
 # Static files
 app.mount("/images", StaticFiles(directory="src/rarity_api/images"), name="images")
 
