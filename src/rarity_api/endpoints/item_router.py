@@ -82,6 +82,7 @@ def mapping(item: Item) -> ItemData:
 
     return ItemData(
         id=item.id,
+        rp=item.rp,
         name=item.name,
         description=item.description,
         year_from=int(years_array[0] if years_array[0] != "None" else 0),
