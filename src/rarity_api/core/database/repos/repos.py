@@ -1,6 +1,6 @@
 from typing import Sequence
 from uuid import UUID
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
 from rarity_api.common.auth.schemas.auth_credentials import AuthCredentialsCreate
@@ -36,6 +36,17 @@ class UserRepository(AbstractRepository):
         existing_user = await self.get_by_filter({"email": email})
         if existing_user:
             return existing_user[0]
+
+    async def verify_user(self, user_id: int):
+        query = (
+            update(self.model)
+            .where(self.model.id == user_id)
+            .values(is_verified=True)
+        )
+
+        result = await self._session.execute(query)
+        await self._session.commit()
+        return result.scalars().first()
 
     async def get_or_create_oidc_user(self, user_data: UserInfoFromIDProvider):
         existing_user = await self.get_existing_user_by_mail(email=user_data.email)

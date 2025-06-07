@@ -18,6 +18,7 @@ from rarity_api.common.auth.native_auth.schemas.user import (
 )
 from rarity_api.core.database.models.models import Subscription
 from rarity_api.core.database.repos.repos import SubscriptionRepository
+from rarity_api.utils.smtp.verify_sender import MailSender
 
 
 class AuthService:
@@ -136,9 +137,11 @@ class AuthService:
 
     async def register_native_user(
             self,
-            user_data: UserCreateHashedPassword
+            user_data: UserCreateHashedPassword,
+            token: str,
+            expire: datetime
     ):
-        user_db_answer = await UserRepository(self.session).create(email=user_data.email)
+        user_db_answer = await UserRepository(self.session).create(email=user_data.email, verify_token=token, token_expires=expire)
         # create trial subscription by default
         # sub = self.create_trial_subscription(user_db_answer.id)
         # saved = await SubscriptionRepository(self.session).create(sub)
@@ -150,6 +153,8 @@ class AuthService:
         )
 
         await self.session.commit()
+
+        MailSender.send_verify_link(email=user_data.email, token=token)
 
         res = UserRead.model_validate(user_db_answer)
         # res.subscription = SubscriptionData(id=saved.id, status=saved.status,

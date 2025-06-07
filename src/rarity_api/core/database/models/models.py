@@ -19,7 +19,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import declarative_base, relationship, Mapped, mapped_column
 
-from rarity_api.core.database.repos.abstract_repo import AbstractRepository
+from src.rarity_api.core.database.repos.abstract_repo import AbstractRepository
 
 Base = declarative_base()
 
@@ -40,6 +40,8 @@ class User(Base):
     second_name: Mapped[String] = mapped_column(String(255), nullable=True)
     last_name: Mapped[String] = mapped_column(String(255), nullable=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    verify_token: Mapped[Optional[str]]
+    token_expires: Mapped[Optional[DateTime]] = mapped_column(DateTime(timezone=True))
     subscription = relationship("Subscription", back_populates="user")
     tokens = relationship("Token", back_populates="user")
     auth_credentials = relationship("AuthCredentials", back_populates="user")
