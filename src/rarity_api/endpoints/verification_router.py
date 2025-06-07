@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 from fastapi import APIRouter, Depends, HTTPException
 
 from rarity_api.common.auth.native_auth.dependencies import authenticate
@@ -18,16 +18,16 @@ router = APIRouter(
 async def resend_verification_email(user: UserRead = Depends(authenticate)):
     return
 
-@router.post("/verify")
+@router.get("/verify")
 async def verify_email(token: str, session: AsyncSession = Depends(get_session)):
-    usr: User = UserRepository(session).get_one_by_filter(verify_token=token)
+    usr: User = await UserRepository(session).get_one_by_filter(verify_token=token)
     if usr is None:
         raise HTTPException(
             status_code=401,
             detail="User not found"
         )
     
-    if usr.token_expires < datetime.now(tz=datetime.timezone.utc):
+    if usr.token_expires < datetime.datetime.now(tz=datetime.timezone.utc):
         raise HTTPException(
             status_code=401,
             detail="Verification token expired"

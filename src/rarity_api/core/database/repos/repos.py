@@ -42,6 +42,7 @@ class UserRepository(AbstractRepository):
             update(self.model)
             .where(self.model.id == user_id)
             .values(is_verified=True)
+            .returning(self.model)
         )
 
         result = await self._session.execute(query)

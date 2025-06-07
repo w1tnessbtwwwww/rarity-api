@@ -30,7 +30,7 @@ class MailSender:
 
         
         # Текст сообщения
-        url = f"{settings.api_base_url}/verification/verify/{token}"
+        url = f"{settings.api_base_url}/verification/verify?token={token}"
         msg.attach(MIMEText(f"Здравствуйте!\nНажмите на ссылку для подтверждения почты: {url}"))
         
         result = None
