@@ -16,10 +16,10 @@ class MailSender:
         smtp_port = 587
 
         print(settings.MAIL_EMAIL)
-        smtp_username = settings.MAIL_EMAIL
-        smtp_password = settings.MAIL_PASSWORD
+        smtp_username = settings.mail_email
+        smtp_password = settings.mail_password
 
-        from_addr = settings.MAIL_EMAIL
+        from_addr = settings.mail_email
         to_addr = email
         # Отправитель и получатель
 
