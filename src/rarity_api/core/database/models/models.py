@@ -78,6 +78,7 @@ class Manufacturer(Base):
 class Item(Base):
     __tablename__ = 'items'
     id: Mapped[int] = mapped_column(primary_key=True)
+    # book ID
     rp: Mapped[Optional[int]]
     name: Mapped[Optional[str]]
     description: Mapped[Optional[str]]

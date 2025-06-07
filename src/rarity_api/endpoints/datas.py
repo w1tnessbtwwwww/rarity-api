@@ -31,6 +31,10 @@ class ManufacturerData(BaseModel):
     # items: list[ItemData]
 
 
+class FindByImageData(BaseModel):
+    base64: str
+
+
 class ItemData(BaseModel):
     id: int
     rp: int | None = None

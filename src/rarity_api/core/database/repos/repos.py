@@ -178,6 +178,15 @@ class ItemRepository(AbstractRepository):
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
+    async def find_by_book_ids(self, ids: list[int]) -> Sequence[Item]:
+        s = select(Item)
+        if ids:
+            s = s.where(Item.rp.in_(ids))
+            result = await self._session.execute(s)
+            return result.scalars().all()
+        else:
+            return []
+
 class SearchHistoryRepository(AbstractRepository):
     model = SearchHistory
 
