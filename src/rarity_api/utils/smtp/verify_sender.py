@@ -15,7 +15,6 @@ class MailSender:
         smtp_server = 'smtp.mail.ru'
         smtp_port = 587
 
-        print(settings.MAIL_EMAIL)
         smtp_username = settings.mail_email
         smtp_password = settings.mail_password
 
