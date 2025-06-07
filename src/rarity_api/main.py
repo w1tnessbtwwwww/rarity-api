@@ -22,6 +22,7 @@ from rarity_api.common.auth.native_auth.router import router as plain_auth_route
 from rarity_api.endpoints.user_router import router as user_router
 from rarity_api.endpoints.payment_router import router as payment_router
 from rarity_api.settings import settings
+from starlette.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Rarity API",
@@ -29,6 +30,13 @@ app = FastAPI(
     version="1.0.0",
     root_path="/api"
 )
+
+app.add_middleware(
+    CORSMiddleware, 
+    allow_origins=["http://localhost", "http://localhost:8081"], 
+    allow_credentials=True, 
+    allow_methods=["*"], 
+    allow_headers=["*"])
 
 app.include_router(google_auth_router)
 app.include_router(plain_auth_router)
