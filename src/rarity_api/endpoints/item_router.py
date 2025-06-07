@@ -10,6 +10,7 @@ from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullDa
 from rarity_api.core.database.connector import get_session
 from rarity_api.core.database.models.models import Item, SearchHistory
 from rarity_api.core.database.repos.repos import ItemRepository, SearchHistoryRepository
+from rarity_api.settings import settings
 
 router = APIRouter(
     prefix="/items",
@@ -109,6 +110,7 @@ def mapping(item: Item) -> ItemData:
         name=item.name,
         description=item.description,
         year_from=int(years_array[0] if years_array[0] != "None" else 0),
-        year_to=years_end
-        # image=item.photo_links
+        year_to=years_end,
+        # TODO: use env for base URL
+        image=f"{settings.api_base_url}/api/images/mark_{item.rp}.png" if item.rp else None,
     )
