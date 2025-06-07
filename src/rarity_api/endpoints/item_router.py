@@ -1,10 +1,11 @@
 from typing import List
 
+import requests
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 
-from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData
+from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData, FindByImageData
 
 from rarity_api.core.database.connector import get_session
 from rarity_api.core.database.models.models import Item, SearchHistory
@@ -72,6 +73,28 @@ async def list_favourites(
     repository = ItemRepository(session)
     # ...
     # return [mapping(item) for item in items]
+
+
+@router.post("/find_by_image")
+async def find_by_image(
+        base64img: str,
+        session: AsyncSession = Depends(get_session)
+):
+    response = requests.post(
+        # TODO: use env for llm URL
+        'http://158.255.6.121:8080/recognize',
+        json={'image': base64img}
+    )
+    if response.status_code != 200:
+        return Response(status_code=response.status_code)
+    data = response.json()
+    if data['status'] != 'success':
+        return Response(status_code=400)
+    results = data['results'] if data['results'] else []
+    new_urls = [int(r['template'].split('/')[-1].split('_')[1].split('.')[0]) for r in results if 'mark_' in r['template']]
+    repository = ItemRepository(session)
+    items = await repository.find_by_book_ids(new_urls)
+    return [mapping(item) for item in items]
 
 
 def mapping(item: Item) -> ItemData:
