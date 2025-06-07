@@ -55,7 +55,7 @@ class AbstractRepository(ABC):
         result = await self._session.execute(query)
         return result.scalars().all()
 
-    async def get_one_by_filter(self, kwargs):
+    async def get_one_by_filter(self, **kwargs):
         query = select(self.model).filter_by(**kwargs)
         result = await self._session.execute(query)
         return result.scalars().one_or_none()

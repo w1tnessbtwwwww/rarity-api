@@ -7,6 +7,7 @@ from rarity_api.common.auth.native_auth.dependencies import valiadate_auth_user,
 from rarity_api.common.auth.native_auth.schemas.user import UserCreatePlainPassword, UserCreateHashedPassword, UserChangePassword
 from rarity_api.common.auth.native_auth.utils.jwt_helpers import create_access_token, create_refresh_token
 from rarity_api.common.auth.native_auth.utils.password_helpers import hash_password
+from rarity_api.utils.generate_token import generate_confirmation_token, set_token_expiry
 
 router = APIRouter(
     prefix="/plain",
@@ -22,13 +23,18 @@ async def register_user(
     # if user already exists, 401 exc will be raised 
     auth_service = AuthService(session)
     existing_user_data = await auth_service.check_user_existence_on_native_register(user_data)
+    
+    token = generate_confirmation_token()
+    expire = set_token_expiry()
 
     password_hash = hash_password(user_data.password)
     registred_user_data = await auth_service.register_native_user(
         UserCreateHashedPassword(
             email=user_data.email,
             password_hash=password_hash
-        )
+        ),
+        token,
+        expire
     )
     return registred_user_data
 
@@ -72,3 +78,6 @@ async def auth_user_issue_jwt(
         httponly=True,  # to prevent JavaScript access
         # secure=True,
     )
+    return {
+        "id_token": id_token
+    }

@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     tochka_customer_code: str = Field(alias="TOCHKA_CUSTOMER_CODE")
     tochka_base_redirect_url: str = Field(alias="TOCHKA_BASE_REDIRECT_URL")
 
+    mail_email: str = Field(alias="MAIL_EMAIL")
+    mail_password: str = Field(alias="MAIL_PASSWORD")
+
     stripe_api_key: str = Field(alias="STRIPE_API_KEY")
     stripe_monthly_pricing_id: str = Field(alias="STRIPE_MONTHLY_PRICING_ID")
     stripe_yearly_pricing_id: str = Field(alias="STRIPE_YEARLY_PRICING_ID")

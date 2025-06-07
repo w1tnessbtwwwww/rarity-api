@@ -10,6 +10,7 @@ from rarity_api.common.auth.yandex_auth.router import router as yandex_router
 from rarity_api.admin.user_admin import UserAdmin
 from rarity_api.common.http_client import HttpClient
 from rarity_api.core.database.connector import get_engine_sync
+from rarity_api.endpoints.verification_router import router as verification_router
 from rarity_api.endpoints.city_router import router as city_router
 from rarity_api.endpoints.country_router import router as country_router
 from rarity_api.endpoints.item_router import router as item_router
@@ -22,6 +23,7 @@ from rarity_api.common.auth.native_auth.router import router as plain_auth_route
 from rarity_api.endpoints.user_router import router as user_router
 from rarity_api.endpoints.payment_router import router as payment_router
 from rarity_api.settings import settings
+from starlette.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Rarity API",
@@ -29,6 +31,13 @@ app = FastAPI(
     version="1.0.0",
     root_path="/api"
 )
+
+app.add_middleware(
+    CORSMiddleware, 
+    allow_origins=["http://localhost", "http://localhost:8081"], 
+    allow_credentials=True, 
+    allow_methods=["*"], 
+    allow_headers=["*"])
 
 app.include_router(google_auth_router)
 app.include_router(plain_auth_router)
@@ -42,6 +51,7 @@ app.include_router(search_history_router)
 app.include_router(yandex_router)
 app.include_router(user_router)
 app.include_router(payment_router)
+app.include_router(verification_router)
 # Static files
 app.mount("/images", StaticFiles(directory="src/rarity_api/images"), name="images")
 
