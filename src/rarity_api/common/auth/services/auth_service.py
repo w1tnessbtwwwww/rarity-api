@@ -154,7 +154,7 @@ class AuthService:
 
         await self.session.commit()
 
-        MailSender.send_verify_link(email=user_data.email, token=token)
+        await MailSender.send_verify_link(email=user_data.email, token=token)
 
         res = UserRead.model_validate(user_db_answer)
         # res.subscription = SubscriptionData(id=saved.id, status=saved.status,
