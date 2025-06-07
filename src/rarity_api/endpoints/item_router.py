@@ -111,6 +111,5 @@ def mapping(item: Item) -> ItemData:
         description=item.description,
         year_from=int(years_array[0] if years_array[0] != "None" else 0),
         year_to=years_end,
-        # TODO: use env for base URL
         image=f"{settings.api_base_url}/api/images/mark_{item.rp}.png" if item.rp else None,
     )
