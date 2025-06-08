@@ -79,6 +79,10 @@ async def list_favourites(
 @router.post("/find_by_image")
 async def find_by_image(
         base64img: str,
+        # TODO: find all by the following fields with 'RP is not null' filter
+        region_name: str = None,
+        country_name: str = None,
+        manufacturer_name: str = None,
         session: AsyncSession = Depends(get_session)
 ):
     response = requests.post(
