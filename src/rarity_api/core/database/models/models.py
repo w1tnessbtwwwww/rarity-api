@@ -125,7 +125,7 @@ class SearchHistory(Base):
     __tablename__ = "search_history"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    region_name: Mapped[str]
+    region_name: Mapped[Optional[str]]
     country_name: Mapped[Optional[str]]
     manufacturer_name: Mapped[Optional[str]]
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), default=func.now())
