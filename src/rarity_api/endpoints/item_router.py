@@ -88,7 +88,7 @@ async def find_by_image(
     response = requests.post(
         # TODO: use env for llm URL
         'http://158.255.6.121:8080/recognize',
-        json={'image': base64img.replace("%2F", "/").replace("%2B", "+")}
+        json={'image': base64img}
     )
     if response.status_code != 200:
         return Response(status_code=response.status_code)
