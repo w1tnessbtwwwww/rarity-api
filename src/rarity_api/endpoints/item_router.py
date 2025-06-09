@@ -78,17 +78,13 @@ async def list_favourites(
 
 @router.post("/find_by_image")
 async def find_by_image(
-        base64img: str,
-        # TODO: find all by the following fields with 'RP is not null' filter
-        region_name: str = None,
-        country_name: str = None,
-        manufacturer_name: str = None,
+        data: FindByImageData,
         session: AsyncSession = Depends(get_session)
 ):
     response = requests.post(
         # TODO: use env for llm URL
         'http://158.255.6.121:8080/recognize',
-        json={'image': base64img}
+        json={'image': data.base64}
     )
     if response.status_code != 200:
         return Response(status_code=response.status_code)
