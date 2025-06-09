@@ -96,10 +96,17 @@ async def find_by_image(
     if data['status'] != 'success':
         return Response(status_code=400)
     results = data['results'] if data['results'] else []
-    new_urls = [int(r['template'].split('/')[-1].split('_')[1].split('.')[0]) for r in results if 'mark_' in r['template']]
+    sorted_by_similarity = sorted(results, key=lambda d: d['similarity'])
+    print(sorted_by_similarity)
     repository = ItemRepository(session)
-    items = await repository.find_by_book_ids(new_urls)
-    return [mapping(item) for item in items]
+    a = []
+    for result in sorted_by_similarity:
+        i = int(result['template'].split('/')[-1].split('_')[1].split('.')[0])
+        item = await repository.find_by_book_id(i)
+        if item:
+            item_data = mapping(item)
+            a.append(item_data)
+    return a
 
 
 def mapping(item: Item) -> ItemData:

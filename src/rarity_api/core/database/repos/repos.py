@@ -199,6 +199,11 @@ class ItemRepository(AbstractRepository):
         else:
             return []
 
+    async def find_by_book_id(self, book_id: int) -> Item | None:
+        s = select(Item).where(Item.rp == book_id)
+        result = await self._session.execute(s)
+        return result.scalars().first()
+
 class SearchHistoryRepository(AbstractRepository):
     model = SearchHistory
 
