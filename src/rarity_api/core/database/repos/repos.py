@@ -190,6 +190,12 @@ class ItemRepository(AbstractRepository):
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
+    async def find_by_id(self, _id: int):
+        s = select(Item).where(Item.id == _id).join(Manufacturer.cities).join(City.region).join(Region.country)
+        result = await self._session.execute(s)
+        return result.scalars().first()
+        # TODO: join country(name) + region(name) + city(name) + manufacturer(name)
+
     async def find_by_book_ids(self, ids: list[int]) -> Sequence[Item]:
         s = select(Item)
         if ids:

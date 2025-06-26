@@ -59,6 +59,12 @@ class ItemFullData(ItemData):
     manufacturer: str
 
 
+class SearchResponse(BaseModel):
+    countries: list[str]
+    manufacturers: list[str]
+    symbols: list[str]
+
+
 class SearchHistoryData(BaseModel):
     id: int
     region_name: str | None
