@@ -136,9 +136,6 @@ async def find_by_image(
         # TODO: use env for llm URL
         'http://158.255.6.121:8080/recognize',
         json={'image': data.base64}
-        #'http://158.255.6.121:8080/recognize',
-        'http://158.255.6.121:8505/recognize',
-	json={'image': data.base64}
     )
     print(response.status_code)
     if response.status_code != 200:
