@@ -2,15 +2,15 @@ from typing import List
 
 import requests
 from fastapi import APIRouter, Depends
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
-
+from sqlalchemy.orm import selectinload
 from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData, FindByImageData, SearchResponse
 from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData, FindByImageData, SearchResponse
 
 from rarity_api.core.database.connector import get_session
-from rarity_api.core.database.models.models import Country, Item, Manufacturer, SearchHistory, Symbol
+from rarity_api.core.database.models.models import Country, Item, Manufacturer, SearchHistory, Symbol, SymbolsLocale
 from rarity_api.core.database.repos.repos import ItemRepository, SearchHistoryRepository
 from rarity_api.settings import settings
 
@@ -63,8 +63,16 @@ async def find_symbols(
     )
 
     symbol_query = (
-        select(Symbol.name)
-        .where(Symbol.name.ilike(f"%{query}%"))
+        select(SymbolsLocale)
+        .join(Symbol, Symbol.id == SymbolsLocale.symbol_id)
+        .where(or_(
+            SymbolsLocale.locale_de.ilike(query),
+            SymbolsLocale.locale_en.ilike(query),
+            SymbolsLocale.locale_ru.ilike(query),
+            SymbolsLocale.translit.ilike(query)
+
+        ))
+        .options(selectinload(SymbolsLocale.symbol))
     )
 
     country_result = await session.execute(country_query)
@@ -73,21 +81,20 @@ async def find_symbols(
 
     countries = country_result.scalars().all()
     manufacturers = manufacturer_result.scalars().all()
-    symbols = symbol_result.scalars().all()
-
+    symbols_locale: SymbolsLocale = symbol_result.scalars().all()
     return SearchResponse(
         countries=countries,
         manufacturers=manufacturers,
-        symbols=symbols
+        symbols=[symbol.symbol.name for symbol in symbols_locale]
     )
 
 
-@router.get("/search")
-async def find_symbols(
-        query: str = None,
-        session: AsyncSession = Depends(get_session)
-) -> SearchResponse:
-    return SearchResponse(countries=[], manufacturers=[], symbols=[])
+# @router.get("/search")
+# async def find_symbols(
+#         query: str = None,
+#         session: AsyncSession = Depends(get_session)
+# ) -> SearchResponse:
+#     return SearchResponse(countries=[], manufacturers=[], symbols=[])
 
 
 @router.get("/{item_id}")
