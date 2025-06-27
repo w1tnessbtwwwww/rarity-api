@@ -148,11 +148,16 @@ class Symbol(Base):
     id: Mapped[UUID] = mapped_column(UUID, primary_key=True, default=uuid.uuid4)
     name: Mapped[Optional[str]]
 
+    rps: Mapped[List["SymbolRp"]] = relationship("SymbolRp", back_populates="symbol")
+
 class SymbolRp(Base):
     __tablename__ = "symbols_rp"
     id: Mapped[UUID] = mapped_column(UUID, primary_key=True, default=uuid.uuid4)
     symbol_id: Mapped[UUID] = mapped_column(UUID, ForeignKey("symbols.id", ondelete="SET NULL"))
     rp: Mapped[int]
+
+    symbol: Mapped["Symbol"] = relationship("Symbol", back_populates="rps")
+
 
 class SymbolsLocale(Base):
     __tablename__ = "symbols_locale"
