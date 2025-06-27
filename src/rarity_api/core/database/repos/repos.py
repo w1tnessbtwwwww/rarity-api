@@ -1,6 +1,6 @@
 from typing import Sequence
 from uuid import UUID
-from sqlalchemy import select, update
+from sqlalchemy import or_, select, update
 from sqlalchemy.orm import selectinload
 
 from rarity_api.common.auth.schemas.auth_credentials import AuthCredentialsCreate
@@ -8,7 +8,7 @@ from rarity_api.common.auth.schemas.token import TokenCreate
 from rarity_api.common.auth.schemas.user import UserCreate
 from rarity_api.common.auth.google_auth.schemas.oidc_user import UserInfoFromIDProvider
 from rarity_api.core.database.models import models
-from rarity_api.core.database.models.models import Country, City, Manufacturer, Region, Item, SearchHistory, Symbol, SymbolRp
+from rarity_api.core.database.models.models import Country, City, Manufacturer, Region, Item, SearchHistory, Symbol, SymbolRp, SymbolsLocale
 from rarity_api.core.database.repos.abstract_repo import AbstractRepository
 
 
@@ -185,17 +185,23 @@ class ItemRepository(AbstractRepository):
         rp_list = []
         if symbol_name:
             symbol_query = (
-                select(Symbol)
-                .where(Symbol.name == symbol_name)
-                .options(selectinload(Symbol.rps))
+                select(SymbolsLocale)
+                .join(Symbol, Symbol.id == SymbolsLocale.symbol_id)
+                .where(or_(
+                    SymbolsLocale.locale_de == symbol_name,
+                    SymbolsLocale.locale_en == symbol_name,
+                    SymbolsLocale.locale_ru == symbol_name,
+                    SymbolsLocale.translit == symbol_name
+
+                ))
+                .options(selectinload(SymbolsLocale.symbol).selectinload(Symbol.rps))
             )
             symbol_result = await self._session.execute(symbol_query)
-            symbols = symbol_result.scalars().all()
-            
+            symbols_locale: SymbolsLocale = symbol_result.scalars().first()
+            symbols = symbols_locale.symbol.rps
             # Собираем все RP из связанных SymbolRp
             for symbol in symbols:
-                for symbol_rp in symbol.rps:
-                    rp_list.append(symbol_rp.rp)
+                rp_list.append(symbol.rp)
         
         # Базовый запрос с джойном производителя
         stmt = select(Item).join(Item.manufacturer).limit(offset).offset((page - 1) * offset)
