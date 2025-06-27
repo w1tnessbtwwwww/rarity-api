@@ -36,7 +36,6 @@ async def get_items(
     # TODO: если идентичный поиск уже был, то обновить дату поиска просто (поднять вверх по сути)
     search_history = SearchHistory(
         region_name=region_name if region_name else "",
-        region_name=region_name if region_name else "",
         country_name=country_name,
         manufacturer_name=manufacturer_name
     )
@@ -128,7 +127,6 @@ async def list_favourites(
 
 @router.post("/find_by_image")
 async def find_by_image(
-        data: FindByImageData,
         data: FindByImageData,
         session: AsyncSession = Depends(get_session)
 ):
