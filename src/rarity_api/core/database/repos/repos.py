@@ -186,7 +186,7 @@ class ItemRepository(AbstractRepository):
         if symbol_name:
             symbol_query = (
                 select(Symbol)
-                .where(Symbol.name.ilike(f"%{symbol_name}%"))
+                .where(Symbol.name == symbol_name)
                 .options(selectinload(Symbol.rps))
             )
             symbol_result = await self._session.execute(symbol_query)
