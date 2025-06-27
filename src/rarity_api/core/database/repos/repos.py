@@ -8,8 +8,18 @@ from rarity_api.common.auth.schemas.token import TokenCreate
 from rarity_api.common.auth.schemas.user import UserCreate
 from rarity_api.common.auth.google_auth.schemas.oidc_user import UserInfoFromIDProvider
 from rarity_api.core.database.models import models
-from rarity_api.core.database.models.models import Country, City, Manufacturer, Region, Item, SearchHistory
+from rarity_api.core.database.models.models import Country, City, Manufacturer, Region, Item, SearchHistory, Symbol
 from rarity_api.core.database.repos.abstract_repo import AbstractRepository
+
+
+class SymbolRpRepository(AbstractRepository):
+    model = models.SymbolRp
+
+class SymbolsRepository(AbstractRepository):
+    model = models.Symbol
+
+class SymbolsLocaleRepository(AbstractRepository):
+    model = models.SymbolsLocale
 
 class SubscriptionRepository(AbstractRepository):
     model = models.Subscription
@@ -169,7 +179,8 @@ class ItemRepository(AbstractRepository):
             # city: str | None = None,
             region: str | None = None,
             country: str | None = None,
-            manufacturer: str | None = None
+            manufacturer: str | None = None,
+            symbol_name: str | None = None
     ):
         stmt = select(Item).join(Item.manufacturer).limit(offset).offset((page - 1) * offset)
         # if country or region or city:
@@ -186,6 +197,8 @@ class ItemRepository(AbstractRepository):
         stmt = stmt.options(
             selectinload(Item.manufacturer).selectinload(Manufacturer.cities)
         )
+
+        
 
         result = await self._session.execute(stmt)
         return result.scalars().all()
