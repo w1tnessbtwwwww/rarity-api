@@ -190,6 +190,11 @@ class ItemRepository(AbstractRepository):
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
+    async def find_by_id(self, _id: int) -> Item | None:
+        s = select(Item).where(Item.id == _id)
+        result = await self._session.execute(s)
+        return result.scalars().first()
+
     async def find_by_book_ids(self, ids: list[int]) -> Sequence[Item]:
         s = select(Item)
         if ids:

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 
-from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData, FindByImageData, SearchResponse
+from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData, FindByImageData
 
 from rarity_api.core.database.connector import get_session
 from rarity_api.core.database.models.models import Item, SearchHistory
@@ -31,7 +31,8 @@ async def get_items(
 ) -> List[ItemData]:
     # Save search history
     search_history = SearchHistory(
-        region_name=region_name if region_name else "",
+#        region_name=region_name,
+        region_name=region_name if region_name else "Bayern",
         country_name=country_name,
         manufacturer_name=manufacturer_name
     )
@@ -40,14 +41,6 @@ async def get_items(
     repository = ItemRepository(session)
     items = await repository.find_items(page, offset, region=region_name, country=country_name, manufacturer=manufacturer_name)
     return [mapping(item) for item in items]
-
-
-@router.get("/search")
-async def find_symbols(
-        query: str = None,
-        session: AsyncSession = Depends(get_session)
-) -> SearchResponse:
-    return SearchResponse(countries=[], manufacturers=[], symbols=[])
 
 
 @router.get("/{item_id}")
@@ -59,7 +52,7 @@ async def get_item(
     item = await repository.find_by_id(item_id)
     if not item:
         return Response(status_code=404)
-    return full_mapping(item)
+    return mapping(item)
 
 
 
@@ -91,20 +84,16 @@ async def find_by_image(
 ):
     response = requests.post(
         # TODO: use env for llm URL
-        #'http://158.255.6.121:8080/recognize',
-        'http://158.255.6.121:8505/recognize',
-	json={'image': data.base64}
+        'http://158.255.6.121:8080/recognize',
+        json={'image': data.base64}
     )
-    print(response.status_code)
     if response.status_code != 200:
         return Response(status_code=response.status_code)
     data = response.json()
-    print(data['status'])
-#    print(response.status_code)
     if data['status'] != 'success':
         return Response(status_code=400)
     results = data['results'] if data['results'] else []
-    sorted_by_similarity = sorted(results, key=lambda d: d['similarity'], reverse=True)
+    sorted_by_similarity = sorted(results, key=lambda d: d['similarity'])
     print(sorted_by_similarity)
     repository = ItemRepository(session)
     a = []
@@ -118,8 +107,10 @@ async def find_by_image(
 
 
 def mapping(item: Item) -> ItemData:
+
     years_array = item.production_years.split(" - ")
     years_end = int(years_array[1] if years_array[1] != "now" else 0)
+    print(years_array)
 
     return ItemData(
         id=item.id,
@@ -129,22 +120,4 @@ def mapping(item: Item) -> ItemData:
         year_from=int(years_array[0] if years_array[0] != "None" else 0),
         year_to=years_end,
         image=f"{settings.api_base_url}/images/mark_{item.rp}.png" if item.rp else None,
-    )
-
-def full_mapping(item) -> ItemFullData:
-    years_array = item.production_years.split(" - ")
-    years_end = int(years_array[1] if years_array[1] != "now" else 0)
-
-    return ItemFullData(
-        id=item.id,
-        rp=item.rp,
-        name=item.name,
-        description=item.description,
-        year_from=int(years_array[0] if years_array[0] != "None" else 0),
-        year_to=years_end,
-        image=f"{settings.api_base_url}/images/mark_{item.rp}.png" if item.rp else None,
-        region="",
-        country="",
-        city="",
-        manufacturer="",
     )
