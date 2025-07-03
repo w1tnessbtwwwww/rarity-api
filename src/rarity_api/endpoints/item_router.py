@@ -46,30 +46,43 @@ async def get_items(
     return [mapping(item) for item in items]
 
 
+#@router.get("/{item_id}")
+#async def get_item(
+#        item_id: int,
+#        session: AsyncSession = Depends(get_session)
+#) -> ItemFullData:
+#    repository = ItemRepository(session)
+#    item = await repository.find_by_id(item_id)
+#    if not item:
+#        return Response(status_code=404)
+#    return full_mapping(item)
+
+
 @router.get("/search", response_model=None)
 async def find_symbols(
         query: str = None,
         session: AsyncSession = Depends(get_session),
 ) -> SearchResponse:
-    
     country_query = (
         select(Country.name)
-        .where(Country.name.ilike(f"%{query}%"))
+#        .where(Country.name.ilike(f"%{query}%"))
+        .where(Country.name.icontains(query))
     )
 
     manufacturer_query = (
         select(Manufacturer.name)
-        .where(Manufacturer.name.ilike(f"%{query}%"))
+#        .where(Manufacturer.name.ilike(f"%{query}%"))
+        .where(Manufacturer.name.icontains(query))
     )
 
     symbol_query = (
         select(SymbolsLocale)
         .join(Symbol, Symbol.id == SymbolsLocale.symbol_id)
         .where(or_(
-            SymbolsLocale.locale_de.ilike(query),
-            SymbolsLocale.locale_en.ilike(query),
-            SymbolsLocale.locale_ru.ilike(query),
-            SymbolsLocale.translit.ilike(query)
+            SymbolsLocale.locale_de.icontains(query),
+            SymbolsLocale.locale_en.icontains(query),
+            SymbolsLocale.locale_ru.icontains(query),
+            SymbolsLocale.translit.icontains(query)
 
         ))
         .options(selectinload(SymbolsLocale.symbol))
@@ -104,11 +117,11 @@ async def get_item(
 ) -> ItemFullData:
     repository = ItemRepository(session)
     item = await repository.find_by_id(item_id)
+    print(item)
     if not item:
         return Response(status_code=404)
     return full_mapping(item)
-    return full_mapping(item)
-
+#    return full_mapping(item)
 
 
 @router.put("/{item_id}/markfav")

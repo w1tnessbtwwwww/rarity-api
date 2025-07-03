@@ -235,7 +235,8 @@ class ItemRepository(AbstractRepository):
         return result.scalars().all()
 
     async def find_by_id(self, _id: int):
-        s = select(Item).where(Item.id == _id).join(Manufacturer.cities).join(City.region).join(Region.country)
+        print(_id)
+        s = select(Item).where(Item.id == _id).outerjoin(Manufacturer.cities).outerjoin(City.region).outerjoin(Region.country)
         result = await self._session.execute(s)
         return result.scalars().first()
         # TODO: join country(name) + region(name) + city(name) + manufacturer(name)
