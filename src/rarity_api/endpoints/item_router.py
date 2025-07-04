@@ -152,7 +152,7 @@ async def find_by_image(
 ):
     response = requests.post(
         # TODO: use env for llm URL
-        'http://158.255.6.121:8080/recognize',
+        'http://host.docker.internal:8505/recognize',
         json={'image': data.base64}
     )
     print(response.status_code)
