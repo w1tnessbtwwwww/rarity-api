@@ -41,7 +41,7 @@ class CreateItem(BaseModel):
     description: Optional[str]
     production_years: str  # Можно хранить как JSON или просто строку с диапазонами
     photo_links: Optional[str]  # Можно хранить ссылки в формате JSON
-    manufacturer_id: int
+    manufacturer: Optional[str]
 
 class ItemData(BaseModel):
     id: int

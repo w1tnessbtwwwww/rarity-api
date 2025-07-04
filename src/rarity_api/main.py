@@ -27,6 +27,7 @@ from rarity_api.endpoints.user_router import router as user_router
 from rarity_api.endpoints.payment_router import router as payment_router
 from rarity_api.settings import settings
 from rarity_api.common.auth.yandex_auth.router import router as yandex_router
+from rarity_api.endpoints.archive_router import router as archive_router
 from starlette.middleware.cors import CORSMiddleware
 
 app = FastAPI(
@@ -56,6 +57,7 @@ app.include_router(yandex_router)
 app.include_router(user_router)
 app.include_router(payment_router)
 app.include_router(verification_router)
+app.include_router(archive_router)
 # Static files
 app.mount("/images", StaticFiles(directory="src/rarity_api/images"), name="images")
 

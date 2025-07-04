@@ -1,7 +1,7 @@
 from typing import List
 
 import requests
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
@@ -13,7 +13,7 @@ from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullDa
 
 from rarity_api.core.database.connector import get_session
 from rarity_api.core.database.models.models import Country, Item, Manufacturer, SearchHistory, Symbol, SymbolsLocale
-from rarity_api.core.database.repos.repos import ItemRepository, SearchHistoryRepository
+from rarity_api.core.database.repos.repos import ItemRepository, ManufacturerRepository, SearchHistoryRepository
 from rarity_api.settings import settings
 
 router = APIRouter(
@@ -24,7 +24,13 @@ router = APIRouter(
 
 @router.post("/create")
 async def create_item(create_data: CreateItem, session: AsyncSession = Depends(get_session), user: UserRead = Depends(authenticate)):
-    return await ItemRepository(session).create(**create_data.model_dump())
+    manufacturer: Manufacturer = await ManufacturerRepository(session).get_one_by_filter(create_data.manufacturer)
+    if not manufacturer:
+        raise HTTPException(
+            status_code=400,
+            detail="Мануфактурер не найден."
+        )
+    return await ItemRepository(session).create(**create_data.model_dump().pop("manufacturer"), manufacturer_id=manufacturer.id)
 
 @router.get("/")
 async def get_items(
