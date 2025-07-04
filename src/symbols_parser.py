@@ -23,7 +23,7 @@ from rarity_api.core.database.repos.repos import SymbolRpRepository, SymbolsRepo
 
 # --- Чтение из файла ---
 entries = []
-with open(f"{os.path.dirname(__file__)}\\excels\\symbol_index.txt", "r", encoding="utf-8") as file:
+with open(f"{os.path.dirname(__file__)}/excels/symbol_index.txt", "r", encoding="utf-8") as file:
     buffer = ""
     for line in file:
         line = line.strip()

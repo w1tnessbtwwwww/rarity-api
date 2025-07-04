@@ -1,17 +1,19 @@
 from typing import List
 
 import requests
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 from sqlalchemy.orm import selectinload
-from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData, FindByImageData, SearchResponse
+from rarity_api.common.auth.native_auth.dependencies import authenticate
+from rarity_api.common.auth.schemas.user import UserRead
+from rarity_api.endpoints.datas import CreateItem, ItemData, SearchHistoryCreate, ItemFullData, FindByImageData, SearchResponse
 from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData, FindByImageData, SearchResponse
 
 from rarity_api.core.database.connector import get_session
 from rarity_api.core.database.models.models import Country, Item, Manufacturer, SearchHistory, Symbol, SymbolsLocale
-from rarity_api.core.database.repos.repos import ItemRepository, SearchHistoryRepository
+from rarity_api.core.database.repos.repos import ItemRepository, ManufacturerRepository, SearchHistoryRepository
 from rarity_api.settings import settings
 
 router = APIRouter(
@@ -19,6 +21,16 @@ router = APIRouter(
     tags=["items"]
 )
 
+
+@router.post("/create")
+async def create_item(create_data: CreateItem, session: AsyncSession = Depends(get_session), user: UserRead = Depends(authenticate)):
+    manufacturer: Manufacturer = await ManufacturerRepository(session).get_one_by_filter(create_data.manufacturer)
+    if not manufacturer:
+        raise HTTPException(
+            status_code=400,
+            detail="Мануфактурер не найден."
+        )
+    return await ItemRepository(session).create(**create_data.model_dump().pop("manufacturer"), manufacturer_id=manufacturer.id)
 
 @router.get("/")
 async def get_items(
@@ -46,30 +58,43 @@ async def get_items(
     return [mapping(item) for item in items]
 
 
+#@router.get("/{item_id}")
+#async def get_item(
+#        item_id: int,
+#        session: AsyncSession = Depends(get_session)
+#) -> ItemFullData:
+#    repository = ItemRepository(session)
+#    item = await repository.find_by_id(item_id)
+#    if not item:
+#        return Response(status_code=404)
+#    return full_mapping(item)
+
+
 @router.get("/search", response_model=None)
 async def find_symbols(
         query: str = None,
         session: AsyncSession = Depends(get_session),
 ) -> SearchResponse:
-    
     country_query = (
         select(Country.name)
-        .where(Country.name.ilike(f"%{query}%"))
+#        .where(Country.name.ilike(f"%{query}%"))
+        .where(Country.name.icontains(query))
     )
 
     manufacturer_query = (
         select(Manufacturer.name)
-        .where(Manufacturer.name.ilike(f"%{query}%"))
+#        .where(Manufacturer.name.ilike(f"%{query}%"))
+        .where(Manufacturer.name.icontains(query))
     )
 
     symbol_query = (
         select(SymbolsLocale)
         .join(Symbol, Symbol.id == SymbolsLocale.symbol_id)
         .where(or_(
-            SymbolsLocale.locale_de.ilike(query),
-            SymbolsLocale.locale_en.ilike(query),
-            SymbolsLocale.locale_ru.ilike(query),
-            SymbolsLocale.translit.ilike(query)
+            SymbolsLocale.locale_de.icontains(query),
+            SymbolsLocale.locale_en.icontains(query),
+            SymbolsLocale.locale_ru.icontains(query),
+            SymbolsLocale.translit.icontains(query)
 
         ))
         .options(selectinload(SymbolsLocale.symbol))
@@ -104,11 +129,11 @@ async def get_item(
 ) -> ItemFullData:
     repository = ItemRepository(session)
     item = await repository.find_by_id(item_id)
+    print(item)
     if not item:
         return Response(status_code=404)
     return full_mapping(item)
-    return full_mapping(item)
-
+#    return full_mapping(item)
 
 
 @router.put("/{item_id}/markfav")

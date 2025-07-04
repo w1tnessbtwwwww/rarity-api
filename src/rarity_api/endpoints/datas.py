@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel
 from datetime import datetime
 from pydantic import field_validator
@@ -34,6 +35,13 @@ class ManufacturerData(BaseModel):
 class FindByImageData(BaseModel):
     base64: str
 
+class CreateItem(BaseModel):
+    rp: Optional[int]
+    name: Optional[str]
+    description: Optional[str]
+    production_years: str  # Можно хранить как JSON или просто строку с диапазонами
+    photo_links: Optional[str]  # Можно хранить ссылки в формате JSON
+    manufacturer: Optional[str]
 
 class ItemData(BaseModel):
     id: int
