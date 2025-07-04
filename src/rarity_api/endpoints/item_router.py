@@ -6,7 +6,9 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 from sqlalchemy.orm import selectinload
-from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData, FindByImageData, SearchResponse
+from rarity_api.common.auth.native_auth.dependencies import authenticate
+from rarity_api.common.auth.schemas.user import UserRead
+from rarity_api.endpoints.datas import CreateItem, ItemData, SearchHistoryCreate, ItemFullData, FindByImageData, SearchResponse
 from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData, FindByImageData, SearchResponse
 
 from rarity_api.core.database.connector import get_session
@@ -19,6 +21,10 @@ router = APIRouter(
     tags=["items"]
 )
 
+
+@router.post("/create")
+async def create_item(create_data: CreateItem, session: AsyncSession = Depends(get_session), user: UserRead = Depends(authenticate)):
+    return await ItemRepository(session).create(**create_data.model_dump())
 
 @router.get("/")
 async def get_items(
