@@ -55,6 +55,7 @@ class ItemData(BaseModel):
     year_from: int | None = None
     year_to: int | None = None
     is_favourite: bool = False  # nullable!
+    source: Optional[str] = None
 
     @field_validator("image")
     def validate_photo(cls, value):

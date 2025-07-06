@@ -260,6 +260,7 @@ def mapping(item: Item) -> ItemData:
         year_from=int(years_array[0] if years_array[0] != "None" else 0),
         year_to=years_end,
         image=f"{settings.api_base_url}/images/mark_{item.rp}.png" if item.rp else None,
+        source=item.source
     )
 
 def full_mapping(item) -> ItemFullData:
