@@ -110,13 +110,11 @@ async def upload_archive(
 ):
     with tempfile.TemporaryDirectory() as temp_dir:
         try:
-            # Распаковка архива
             with zipfile.ZipFile(file.file, 'r') as zip_ref:
                 zip_ref.extractall(temp_dir)
         except zipfile.BadZipFile:
             raise HTTPException(400, detail="Невозможно распаковать архив")
 
-        # 1. Поиск Excel файла (включая index.xlsx)
         excel_path = None
         for root, _, files in os.walk(temp_dir):
             for file_name in files:
@@ -129,7 +127,6 @@ async def upload_archive(
         if not excel_path:
             raise HTTPException(400, detail="Excel файл не найден в архиве")
 
-        # 2. Поиск изображений (более гибкий поиск)
         images_source = None
         possible_paths = [
             os.path.join(temp_dir, "book", "marks_images"),
@@ -145,15 +142,13 @@ async def upload_archive(
         if not images_source:
             raise HTTPException(400, detail="Папка с изображениями не найдена")
 
-        # 3. Копирование изображений с очисткой целевой директории
         if os.path.exists(IMAGES_DIR):
             shutil.rmtree(IMAGES_DIR)
         shutil.copytree(images_source, IMAGES_DIR)
 
-        # 4. Обработка Excel с явным коммитом
         try:
             await process_excel_file(session, excel_path, source)
-            await session.commit()  # Явный коммит изменений
+            await session.commit()
         except Exception as e:
             await session.rollback()
             raise HTTPException(500, detail=f"Ошибка обработки Excel: {str(e)}")
