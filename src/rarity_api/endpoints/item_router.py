@@ -23,14 +23,67 @@ router = APIRouter(
 
 
 @router.post("/create")
-async def create_item(create_data: CreateItem, session: AsyncSession = Depends(get_session), user: UserRead = Depends(authenticate)):
-    manufacturer: Manufacturer = await ManufacturerRepository(session).get_one_by_filter(create_data.manufacturer)
+async def create_item(create_data: CreateItem, session: AsyncSession = Depends(get_session)):
+    manufacturer = await ManufacturerRepository(session).find_by_name(create_data.manufacturer)
     if not manufacturer:
         raise HTTPException(
-            status_code=400,
-            detail="Мануфактурер не найден."
+            status_code=404,
+            detail="Мануфактура не найдена"
         )
-    return await ItemRepository(session).create(**create_data.model_dump().pop("manufacturer"), manufacturer_id=manufacturer.id)
+    data_dict = create_data.model_dump()
+    data_dict.pop("manufacturer")
+    data_dict.pop("region")
+    data_dict.pop("year_from")
+    data_dict.pop("year_to")
+    data_dict["production_years"] = f"{'' if create_data.year_from is None else create_data.year_from}-{'' if create_data.year_to is None else create_data.year_to}"
+    return await ItemRepository(session).create(**data_dict, manufacturer_id=manufacturer.id)
+
+
+@router.put("/{item_id}")
+async def update_item(
+        item_id: int,
+        data: CreateItem,
+        session: AsyncSession = Depends(get_session),
+        # TODO: uncomment later
+        # user: UserRead = Depends(authenticate)
+):
+    repository = ItemRepository(session)
+    item = await repository.find_by_id(item_id)
+    if not item:
+        raise HTTPException(
+            status_code=404,
+            detail="Клеймо не найдено"
+        )
+    if data.manufacturer:
+        manufacturer = await ManufacturerRepository(session).find_by_name(data.manufacturer)
+        if not manufacturer:
+            raise HTTPException(
+                status_code=404,
+                detail="Мануфактура не найдена"
+            )
+        item.manufacturer_id = manufacturer.id
+    item.rp = data.rp
+    item.description = data.description
+    item.production_years = data.production_years
+    item.photo_links = data.photo_links
+    # item.region = data.region
+    item.source = data.source
+    await session.commit()
+    await session.refresh(item)
+    return mapping(item)
+
+
+@router.delete("/{item_id}")
+async def delete_item(
+        item_id: int,
+        session: AsyncSession = Depends(get_session),
+        # TODO: uncomment later
+        # user: UserRead = Depends(authenticate)
+):
+    repository = ItemRepository(session)
+    await repository.delete_by_id(item_id)
+    return Response(status_code=200)
+
 
 @router.get("/")
 async def get_items(
