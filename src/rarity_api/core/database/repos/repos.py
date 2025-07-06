@@ -212,7 +212,7 @@ class ItemRepository(AbstractRepository):
         # Базовый запрос с джойном производителя
         stmt = select(Item).join(Item.manufacturer).limit(offset).offset((page - 1) * offset)
         if book_ids:
-            stmt = stmt.where(Item.id.in_(book_ids))
+            stmt = stmt.where(Item.rp.in_(book_ids))
         # Фильтрация по географии (через города производителя)
         if country or region:
             stmt = stmt.join(Manufacturer.cities).join(City.region).join(Region.country)
