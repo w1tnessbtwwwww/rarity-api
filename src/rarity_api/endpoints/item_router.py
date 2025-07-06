@@ -23,14 +23,21 @@ router = APIRouter(
 
 
 @router.post("/create")
-async def create_item(create_data: CreateItem, session: AsyncSession = Depends(get_session), user: UserRead = Depends(authenticate)):
-    manufacturer: Manufacturer = await ManufacturerRepository(session).get_one_by_filter(create_data.manufacturer)
+async def create_item(create_data: CreateItem, session: AsyncSession = Depends(get_session)):
+    manufacturer = await ManufacturerRepository(session).find_by_name(create_data.manufacturer)
     if not manufacturer:
         raise HTTPException(
-            status_code=400,
-            detail="Мануфактурер не найден."
+            status_code=404,
+            detail="Мануфактура не найдена"
         )
-    return await ItemRepository(session).create(**create_data.model_dump().pop("manufacturer"), manufacturer_id=manufacturer.id)
+    data_dict = create_data.model_dump()
+    data_dict.pop("manufacturer")
+    data_dict.pop("region")
+    data_dict.pop("source")  # todo delete this line
+    data_dict.pop("year_from")
+    data_dict.pop("year_to")
+    data_dict["production_years"] = f"{'' if create_data.year_from is None else create_data.year_from}-{'' if create_data.year_to is None else create_data.year_to}"
+    return await ItemRepository(session).create(**data_dict, manufacturer_id=manufacturer.id)
 
 
 @router.put("/{item_id}")

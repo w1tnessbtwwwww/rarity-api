@@ -37,11 +37,15 @@ class FindByImageData(BaseModel):
 
 class CreateItem(BaseModel):
     rp: Optional[int]
-    name: Optional[str]
-    description: Optional[str]
-    production_years: str  # Можно хранить как JSON или просто строку с диапазонами
-    photo_links: Optional[str]  # Можно хранить ссылки в формате JSON
-    manufacturer: Optional[str]
+    # name: Optional[str] = None
+    description: Optional[str] = None
+    year_from: Optional[int] = None
+    year_to: Optional[int] = None
+    # production_years: str  # Можно хранить как JSON или просто строку с диапазонами
+    photo_links: Optional[str] = None  # Можно хранить ссылки в формате JSON
+    manufacturer: Optional[str] = None
+    region: Optional[str] = None
+    source: Optional[str] = None
 
 # надо подумать и синхронизировать
 class CreateItemData(BaseModel):
