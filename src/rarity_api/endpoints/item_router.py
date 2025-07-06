@@ -33,7 +33,6 @@ async def create_item(create_data: CreateItem, session: AsyncSession = Depends(g
     data_dict = create_data.model_dump()
     data_dict.pop("manufacturer")
     data_dict.pop("region")
-    data_dict.pop("source")  # todo delete this line
     data_dict.pop("year_from")
     data_dict.pop("year_to")
     data_dict["production_years"] = f"{'' if create_data.year_from is None else create_data.year_from}-{'' if create_data.year_to is None else create_data.year_to}"
