@@ -36,7 +36,7 @@ class ReadItem(BaseModel):
     prod_year_end: Union[int, str] | None
     desc: str | None
 
-async def process_excel_file(session: AsyncSession, excel_path: str):
+async def process_excel_file(session: AsyncSession, excel_path: str, source: str):
     """Обработка Excel файла и сохранение в БД"""
     workbook = openpyxl.load_workbook(excel_path)
     sheet = workbook.active
@@ -98,11 +98,13 @@ async def process_excel_file(session: AsyncSession, excel_path: str):
                 manufacturer_id=manufacturer.id,
                 description=current_row.desc or "",
                 production_years=f"{year_start} - {year_end}",
-                city_id=city.id if city else None
+                city_id=city.id if city else None,
+                source=source
             )
 
 @router.post("/upload")
 async def upload_archive(
+    source: str,
     file: UploadFile = File(...),
     session: AsyncSession = Depends(get_session)
 ):
@@ -150,7 +152,7 @@ async def upload_archive(
 
         # 4. Обработка Excel с явным коммитом
         try:
-            await process_excel_file(session, excel_path)
+            await process_excel_file(session, excel_path, source)
             await session.commit()  # Явный коммит изменений
         except Exception as e:
             await session.rollback()
