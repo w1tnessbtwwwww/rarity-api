@@ -43,21 +43,35 @@ async def create_item(create_data: CreateItem, session: AsyncSession = Depends(g
 @router.put("/{item_id}")
 async def update_item(
         item_id: int,
-        create_data: CreateItem,
+        data: CreateItem,
         session: AsyncSession = Depends(get_session),
         # TODO: uncomment later
         # user: UserRead = Depends(authenticate)
 ):
-    manufacturer_repository = ManufacturerRepository(session)
-    manufacturer: Manufacturer | None = await manufacturer_repository.find_by_name(create_data.manufacturer)
-    if not manufacturer:
-        raise HTTPException(
-            status_code=400,
-            detail="Мануфактура не найдена."
-        )
     repository = ItemRepository(session)
-    updated = await repository.update()
-    return mapping(updated)
+    item = await repository.find_by_id(item_id)
+    if not item:
+        raise HTTPException(
+            status_code=404,
+            detail="Клеймо не найдено"
+        )
+    if data.manufacturer:
+        manufacturer = await ManufacturerRepository(session).find_by_name(data.manufacturer)
+        if not manufacturer:
+            raise HTTPException(
+                status_code=404,
+                detail="Мануфактура не найдена"
+            )
+        item.manufacturer_id = manufacturer.id
+    item.rp = data.rp
+    item.description = data.description
+    item.production_years = data.production_years
+    item.photo_links = data.photo_links
+    # item.region = data.region
+    item.source = data.source
+    await session.commit()
+    await session.refresh(item)
+    return mapping(item)
 
 
 @router.delete("/{item_id}")
