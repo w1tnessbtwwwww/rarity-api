@@ -36,7 +36,7 @@ class ReadItem(BaseModel):
     prod_year_end: Union[int, str] | None
     desc: str | None
 
-async def process_excel_file(session: AsyncSession, excel_path: str):
+async def process_excel_file(session: AsyncSession, excel_path: str, source: str):
     """Обработка Excel файла и сохранение в БД"""
     workbook = openpyxl.load_workbook(excel_path)
     sheet = workbook.active
@@ -98,23 +98,23 @@ async def process_excel_file(session: AsyncSession, excel_path: str):
                 manufacturer_id=manufacturer.id,
                 description=current_row.desc or "",
                 production_years=f"{year_start} - {year_end}",
-                city_id=city.id if city else None
+                city_id=city.id if city else None,
+                source=source
             )
 
 @router.post("/upload")
 async def upload_archive(
+    source: str,
     file: UploadFile = File(...),
     session: AsyncSession = Depends(get_session)
 ):
     with tempfile.TemporaryDirectory() as temp_dir:
         try:
-            # Распаковка архива
             with zipfile.ZipFile(file.file, 'r') as zip_ref:
                 zip_ref.extractall(temp_dir)
         except zipfile.BadZipFile:
             raise HTTPException(400, detail="Невозможно распаковать архив")
 
-        # 1. Поиск Excel файла (включая index.xlsx)
         excel_path = None
         for root, _, files in os.walk(temp_dir):
             for file_name in files:
@@ -127,7 +127,6 @@ async def upload_archive(
         if not excel_path:
             raise HTTPException(400, detail="Excel файл не найден в архиве")
 
-        # 2. Поиск изображений (более гибкий поиск)
         images_source = None
         possible_paths = [
             os.path.join(temp_dir, "book", "marks_images"),
@@ -143,15 +142,13 @@ async def upload_archive(
         if not images_source:
             raise HTTPException(400, detail="Папка с изображениями не найдена")
 
-        # 3. Копирование изображений с очисткой целевой директории
         if os.path.exists(IMAGES_DIR):
             shutil.rmtree(IMAGES_DIR)
         shutil.copytree(images_source, IMAGES_DIR)
 
-        # 4. Обработка Excel с явным коммитом
         try:
-            await process_excel_file(session, excel_path)
-            await session.commit()  # Явный коммит изменений
+            await process_excel_file(session, excel_path, source)
+            await session.commit()
         except Exception as e:
             await session.rollback()
             raise HTTPException(500, detail=f"Ошибка обработки Excel: {str(e)}")

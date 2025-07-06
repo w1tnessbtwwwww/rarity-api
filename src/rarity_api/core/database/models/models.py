@@ -19,7 +19,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import declarative_base, relationship, Mapped, mapped_column
 
-from rarity_api.core.database.repos.abstract_repo import AbstractRepository
+from src.rarity_api.core.database.repos.abstract_repo import AbstractRepository
 
 Base = declarative_base()
 
@@ -88,6 +88,7 @@ class Item(Base):
     photo_links: Mapped[Optional[str]]  # Можно хранить ссылки в формате JSON
     manufacturer_id: Mapped[int] = mapped_column(Integer, ForeignKey('manufacturers.id'), nullable=False)
     manufacturer: Mapped["Manufacturer"] = relationship("Manufacturer", back_populates="items")
+    source: Mapped[Optional[str]]
 
 class Token(Base):
     __tablename__ = 'tokens'
