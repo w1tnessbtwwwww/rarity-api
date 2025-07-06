@@ -215,6 +215,10 @@ async def find_by_image(
         data: FindByImageData,
         page: int = 1,
         offset: int = 10,
+        region_name: str = None,
+        country_name: str = None,
+        manufacturer_name: str = None,
+        symbol_name: str = None,
         session: AsyncSession = Depends(get_session)
 ):
     response = requests.post(
@@ -233,14 +237,15 @@ async def find_by_image(
     end = start + offset
     paginated_results = sorted_by_similarity[start:end]
     repository = ItemRepository(session)
-    a = []
-    for result in paginated_results:
-        i = int(result['template'].split('/')[-1].split('_')[1].split('.')[0])
-        item: Item | None = await repository.find_by_book_id(i)
-        if item:
-            item_data = mapping(item)
-            a.append(item_data)
-    return a
+    book_ids: list[int] = [
+        int(result['template'].split('/')[-1].split('_')[1].split('.')[0])
+        for result in paginated_results
+    ]
+    items = await repository.find_items(page, offset,
+                                        region=region_name, country=country_name, manufacturer=manufacturer_name,
+                                        symbol_name=symbol_name,
+                                        book_ids=book_ids)
+    return [mapping(item) for item in items]
 
 
 def mapping(item: Item) -> ItemData:
