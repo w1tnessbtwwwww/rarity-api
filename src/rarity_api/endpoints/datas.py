@@ -45,19 +45,6 @@ class CreateItem(BaseModel):
     region: Optional[str] = None
     source: Optional[str] = None
 
-# надо подумать и синхронизировать
-class CreateItemData(BaseModel):
-    description: str | None = None  # nullable=True
-    image: str | None = None
-    year_from: int | None = None
-    year_to: int | None = None
-    country: str | None = None
-    manufacturer: str | None = None
-    region: str | None = None
-    city: str | None = None
-    # book only
-    rp: int | None = None
-
 
 class ItemData(BaseModel):
     id: int
