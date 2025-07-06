@@ -53,7 +53,7 @@ class ItemData(BaseModel):
     year_to: int | None = None
     is_favourite: bool = False  # nullable!
 
-    @field_validator("rp")
+    @field_validator("image")
     def validate_photo(cls, value):
         return f"{settings.api_base_url}{settings.images_dir_path}/mark_{value}.png" if value is not None else None
     # manufacturer_id: int
