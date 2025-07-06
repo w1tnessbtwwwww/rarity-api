@@ -160,30 +160,30 @@ async def list_favourites(
 @router.post("/find_by_image")
 async def find_by_image(
         data: FindByImageData,
+        page: int = 1,
+        offset: int = 10,
         session: AsyncSession = Depends(get_session)
 ):
     response = requests.post(
         # TODO: use env for llm URL
-        'http://158.255.6.121:8080/recognize',
+        'http://host.docker.internal:8080/recognize',
         json={'image': data.base64}
     )
-    print(response.status_code)
     if response.status_code != 200:
         return Response(status_code=response.status_code)
     data = response.json()
-    print(data['status'])
-#    print(response.status_code)
     if data['status'] != 'success':
         return Response(status_code=400)
     results = data['results'] if data['results'] else []
     sorted_by_similarity = sorted(results, key=lambda d: d['similarity'], reverse=True)
-    sorted_by_similarity = sorted(results, key=lambda d: d['similarity'], reverse=True)
-    print(sorted_by_similarity)
+    start = (page - 1) * offset
+    end = start + offset
+    paginated_results = sorted_by_similarity[start:end]
     repository = ItemRepository(session)
     a = []
-    for result in sorted_by_similarity:
+    for result in paginated_results:
         i = int(result['template'].split('/')[-1].split('_')[1].split('.')[0])
-        item = await repository.find_by_book_id(i)
+        item: Item | None = await repository.find_by_book_id(i)
         if item:
             item_data = mapping(item)
             a.append(item_data)
