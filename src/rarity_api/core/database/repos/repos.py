@@ -184,7 +184,8 @@ class ItemRepository(AbstractRepository):
         region: str | None = None,
         country: str | None = None,
         manufacturer: str | None = None,
-        symbol_name: str | None = None
+        symbol_name: str | None = None,
+        book_ids: list[int] | None = None,
     ):
     # Сначала получаем список RP для символа (если передан symbol_name)
         rp_list = []
@@ -210,7 +211,8 @@ class ItemRepository(AbstractRepository):
         
         # Базовый запрос с джойном производителя
         stmt = select(Item).join(Item.manufacturer).limit(offset).offset((page - 1) * offset)
-        
+        if book_ids:
+            stmt = stmt.where(Item.id.in_(book_ids))
         # Фильтрация по географии (через города производителя)
         if country or region:
             stmt = stmt.join(Manufacturer.cities).join(City.region).join(Region.country)
