@@ -262,6 +262,7 @@ class ItemRepository(AbstractRepository):
 
     async def delete_by_id(self, item_id: int):
         await self._session.execute(delete(Item).where(Item.id == item_id))
+        await self._session.commit()
 
 class SearchHistoryRepository(AbstractRepository):
     model = SearchHistory
