@@ -300,8 +300,22 @@ def full_mapping(item: Item): # -> ItemFullData:
     print(item.manufacturer.cities)
 
     cities = [manufacturer_city.city.name for manufacturer_city in item.manufacturer.cities]
-    regions = [manufacturer_city.city.region.name for manufacturer_city in item.manufacturer.cities]
-    countries = [manufacturer_city.city.region.country.name for manufacturer_city in item.manufacturer.cities]
+#    regions = [manufacturer_city.city.region.name for manufacturer_city in item.manufacturer.cities]
+#    countries = [manufacturer_city.city.region.country.name for manufacturer_city in item.manufacturer.cities]
+
+    regions = []
+    countries = []
+
+    if item.manufacturer:
+        for mc in item.manufacturer.cities:
+            city = mc.city
+            if city:
+                region = city.region
+                if region:
+                    regions.append(region.name)
+                    country = region.country
+                    if country:
+                        countries.append(country.name)
 
     print(f"cities -- {cities}, regions - {regions}, counties - {countries}")
 
@@ -313,11 +327,16 @@ def full_mapping(item: Item): # -> ItemFullData:
         year_from=int(years_array[0] if years_array[0] != "None" else 0),
         year_to=years_end,
         image=f"{item.rp}" if item.rp else None,
-        region=item.region.name if item.region else "",
-        country=item.country.name if item.country else "",
-        city=item.city.name if item.city else "",
-        regions=regions,
-        countries=countries,
+        region=regions[0] if regions else "",
+        country=countries[0] if countries else "",
+        city=cities[0] if cities else "",
+#        region=item.region.name if item.region else "",
+#        country=item.country.name if item.country else "",
+#        city=item.city.name if item.city else "",
+#        regions=regions,
+#        countries=countries,
+        regions=list(set(regions)),
+        countries=list(set(countries)),
         cities=cities,
         manufacturer=item.manufacturer.name if item.manufacturer else None
     )
