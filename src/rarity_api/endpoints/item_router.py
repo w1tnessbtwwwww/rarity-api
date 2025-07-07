@@ -286,6 +286,7 @@ async def find_by_image(
         int(result['template'].split('/')[-1].split('_')[1].split('.')[0])
         for result in paginated_results
     ]
+    print(book_ids)
     items = await repository.find_items(page, offset,
                                         region=region_name, country=country_name, manufacturer=manufacturer_name,
                                         symbol_name=symbol_name,
@@ -304,7 +305,7 @@ def mapping(item: Item) -> ItemData:
         description=item.description,
         year_from=int(years_array[0] if years_array[0] != "None" else 0),
         year_to=years_end,
-        image=f"{settings.api_base_url}/images/mark_{item.rp}.png" if item.rp else None,
+        image=f"{item.rp}" if item.rp else None,
         source=item.source
     )
 
@@ -326,10 +327,12 @@ def full_mapping(item: Item): # -> ItemFullData:
         description=item.description,
         year_from=int(years_array[0] if years_array[0] != "None" else 0),
         year_to=years_end,
-        image=f"{settings.api_base_url}/images/mark_{item.rp}.png" if item.rp else None,
+        image=f"{item.rp}" if item.rp else None,
+        region=item.region.name if item.region else "",
+        country=item.country.name if item.country else "",
+        city=item.city.name if item.city else "",
         regions=regions,
         countries=countries,
         cities=cities,
         manufacturer=item.manufacturer.name if item.manufacturer else None
     )
-
