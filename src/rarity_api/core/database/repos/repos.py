@@ -1,6 +1,6 @@
 from typing import Sequence
 from uuid import UUID
-from sqlalchemy import or_, select, update, delete
+from sqlalchemy import exists, or_, select, update, delete
 from sqlalchemy.orm import selectinload
 
 from rarity_api.common.auth.schemas.auth_credentials import AuthCredentialsCreate
@@ -8,7 +8,7 @@ from rarity_api.common.auth.schemas.token import TokenCreate
 from rarity_api.common.auth.schemas.user import UserCreate
 from rarity_api.common.auth.google_auth.schemas.oidc_user import UserInfoFromIDProvider
 from rarity_api.core.database.models import models
-from rarity_api.core.database.models.models import Country, City, Manufacturer, Region, Item, SearchHistory, Symbol, SymbolRp, SymbolsLocale
+from rarity_api.core.database.models.models import Country, City, Manufacturer, ManufacturerCity, Region, Item, SearchHistory, Symbol, SymbolRp, SymbolsLocale
 from rarity_api.core.database.repos.abstract_repo import AbstractRepository
 
 
@@ -205,62 +205,60 @@ class ItemRepository(AbstractRepository):
         symbol_name: str | None = None,
         book_ids: list[int] | None = None,
     ):
-    # Сначала получаем список RP для символа (если передан symbol_name)
-        rp_list = []
+        # Создаем базовый запрос
+        stmt = select(Item).join(Item.manufacturer)
+
+        # Фильтрация по географии с помощью EXISTS (устраняет декартово произведение)
+        if country or region:
+            # Корректный подзапрос с использованием ассоциативной таблицы
+            location_exists = (
+                select(1)
+                .select_from(ManufacturerCity)
+                .join(City, ManufacturerCity.city_id == City.id)
+                .join(Region, City.region_id == Region.id)
+                .join(Country, Region.country_id == Country.id)
+                .where(ManufacturerCity.manufacturer_id == Manufacturer.id)
+            )
+            
+            if country:
+                location_exists = location_exists.where(Country.name == country)
+            if region:
+                location_exists = location_exists.where(Region.name == region)
+                
+            stmt = stmt.where(exists(location_exists))
+
+        # Фильтрация по производителю
+        if manufacturer:
+            stmt = stmt.where(Manufacturer.name == manufacturer)
+
+        # Фильтрация по символу через подзапрос
         if symbol_name:
-            symbol_query = (
-                select(SymbolsLocale)
-                .join(Symbol, Symbol.id == SymbolsLocale.symbol_id)
+            symbol_subq = (
+                select(SymbolRp.rp_id)
+                .join(Symbol, Symbol.id == SymbolRp.symbol_id)
+                .join(SymbolsLocale, SymbolsLocale.symbol_id == Symbol.id)
                 .where(or_(
                     SymbolsLocale.locale_de == symbol_name,
                     SymbolsLocale.locale_en == symbol_name,
                     SymbolsLocale.locale_ru == symbol_name,
                     SymbolsLocale.translit == symbol_name
-
                 ))
-                .options(selectinload(SymbolsLocale.symbol).selectinload(Symbol.rps))
+                .distinct()
             )
-            symbol_result = await self._session.execute(symbol_query)
-            symbols_locale: SymbolsLocale = symbol_result.scalars().first()
-            symbols = symbols_locale.symbol.rps
-            # Собираем все RP из связанных SymbolRp
-            for symbol in symbols:
-                rp_list.append(symbol.rp)
-        
-        # Базовый запрос с джойном производителя
-        stmt = select(Item).join(Item.manufacturer)
+            stmt = stmt.where(Item.rp.in_(symbol_subq))
+        # Фильтрация по book_ids (если нет symbol_name)
+        elif book_ids:
+            stmt = stmt.where(Item.rp.in_(book_ids))
+
+        # Пагинация
         if page and offset:
             stmt = stmt.limit(offset).offset((page - 1) * offset)
-        if book_ids:
-            stmt = stmt.where(Item.rp.in_(book_ids))
-        # Фильтрация по географии (через города производителя)
-        if country or region:
-            stmt = stmt.join(Manufacturer.cities).join(City.region).join(Region.country)
-        if country:
-            stmt = stmt.where(Country.name == country)
-        if region:
-            stmt = stmt.where(Region.name == region)
-        
-        # Фильтрация по производителю
-        if manufacturer:
-            stmt = stmt.where(Manufacturer.name == manufacturer)
-        
-        # Фильтрация по RP из символа
-        if symbol_name:
-            if rp_list:
-                stmt = stmt.where(Item.rp.in_(rp_list))
-            else:
-                # Если символ не найден, возвращаем пустой результат
-                stmt = stmt.where(1 == 0)  # Always false condition
-        else:
-            if book_ids:
-                stmt = stmt.where(Item.rp.in_(book_ids))
-        
+
         # Загрузка связанных данных
         stmt = stmt.options(
             selectinload(Item.manufacturer).selectinload(Manufacturer.cities)
         )
-        
+
         result = await self._session.execute(stmt)
         return result.scalars().all()
 
