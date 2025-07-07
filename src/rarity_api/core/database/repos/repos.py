@@ -250,6 +250,9 @@ class ItemRepository(AbstractRepository):
             else:
                 # Если символ не найден, возвращаем пустой результат
                 stmt = stmt.where(1 == 0)  # Always false condition
+        else:
+            if book_ids:
+                stmt = stmt.where(Item.rp.in_(book_ids))
         
         # Загрузка связанных данных
         stmt = stmt.options(
