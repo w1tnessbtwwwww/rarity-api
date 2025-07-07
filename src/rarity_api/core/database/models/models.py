@@ -19,7 +19,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import declarative_base, relationship, Mapped, mapped_column
 
-from src.rarity_api.core.database.repos.abstract_repo import AbstractRepository
+from rarity_api.core.database.repos.abstract_repo import AbstractRepository
 
 Base = declarative_base()
 
