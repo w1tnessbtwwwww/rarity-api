@@ -12,7 +12,7 @@ from rarity_api.endpoints.datas import CreateItem, ItemData, SearchHistoryCreate
 from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData, FindByImageData, SearchResponse
 
 from rarity_api.core.database.connector import get_session
-from rarity_api.core.database.models.models import Country, Item, Manufacturer, ManufacturerCity, SearchHistory, City, Region, Symbol, SymbolsLocale
+from rarity_api.core.database.models.models import City, Country, Item, Manufacturer, ManufacturerCity, Region, SearchHistory, Symbol, SymbolsLocale
 from rarity_api.core.database.repos.repos import ItemRepository, ManufacturerRepository, SearchHistoryRepository
 from rarity_api.settings import settings
 
