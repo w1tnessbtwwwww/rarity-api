@@ -35,7 +35,7 @@ async def create_item(create_data: CreateItem, session: AsyncSession = Depends(g
     data_dict.pop("region")
     data_dict.pop("year_from")
     data_dict.pop("year_to")
-    data_dict["production_years"] = f"{'' if create_data.year_from is None else create_data.year_from}-{'' if create_data.year_to is None else create_data.year_to}"
+    data_dict["production_years"] = f"{'' if create_data.year_from is None else create_data.year_from} - {'' if create_data.year_to is None else create_data.year_to}"
     return await ItemRepository(session).create(**data_dict, manufacturer_id=manufacturer.id)
 
 
@@ -64,8 +64,9 @@ async def update_item(
         item.manufacturer_id = manufacturer.id
     item.rp = data.rp
     item.description = data.description
-    item.production_years = data.production_years
+#    item.production_years = data.production_years
     item.photo_links = data.photo_links
+    item.production_years = f"{'' if data.year_from is None else data.year_from} - {'' if data.year_to is None else data.year_to}"
     # item.region = data.region
     item.source = data.source
     await session.commit()
@@ -279,7 +280,8 @@ async def find_by_image(
 
 def mapping(item: Item) -> ItemData:
     years_array = item.production_years.split(" - ")
-    years_end = int(years_array[1] if years_array[1] != "now" else 0)
+#    years_end = int(years_array[1]) if (len(years_array > 0 and years_array[1] != "now") else 0
+    years_end = int(years_array[1].strip()) if (len(years_array) > 1 and years_array[1] != "now") else 0
 
     return ItemData(
         id=item.id,
