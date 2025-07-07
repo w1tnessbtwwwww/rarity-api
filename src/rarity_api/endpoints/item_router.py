@@ -112,9 +112,7 @@ async def get_items(
 
 
 @router.get("/length")
-async def get_items(
-        page: int = 1,
-        offset: int = 50,
+async def items_length(
         region_name: str = None,
         country_name: str = None,
         manufacturer_name: str = None,
@@ -123,25 +121,10 @@ async def get_items(
         # to_date: str = None,
         session: AsyncSession = Depends(get_session)
 ):
-    # Save search history
-    # TODO: если идентичный поиск уже был, то обновить дату поиска просто (поднять вверх по сути)
-    search_history = SearchHistory(
-        region_name=region_name if region_name else "",
-        country_name=country_name,
-        manufacturer_name=manufacturer_name
-    )
-    history_repository = SearchHistoryRepository(session)
-    await history_repository.create(search_history)
     repository = ItemRepository(session)
-    items = await repository.find_items(page, offset, region=region_name, country=country_name, manufacturer=manufacturer_name, symbol_name=symbol_name)
-    all_items_query = (
-        select(Item)
-    )
-    all_items_result = await session.execute(all_items_query)
-    all_items = all_items_result.scalars().all()
+    items = await repository.find_items(page=None, offset=None, region=region_name, country=country_name, manufacturer=manufacturer_name, symbol_name=symbol_name)
     return {
-        "count": len(items),
-        "pages": len(all_items) // offset
+        "total": len(items),
     }
 
 #@router.get("/{item_id}")

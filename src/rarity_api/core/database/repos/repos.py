@@ -228,7 +228,9 @@ class ItemRepository(AbstractRepository):
                 rp_list.append(symbol.rp)
         
         # Базовый запрос с джойном производителя
-        stmt = select(Item).join(Item.manufacturer).limit(offset).offset((page - 1) * offset)
+        stmt = select(Item).join(Item.manufacturer)
+        if page and offset:
+            stmt = stmt.limit(offset).offset((page - 1) * offset)
         if book_ids:
             stmt = stmt.where(Item.rp.in_(book_ids))
         # Фильтрация по географии (через города производителя)
