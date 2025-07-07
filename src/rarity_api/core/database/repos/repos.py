@@ -1,6 +1,6 @@
 from typing import Sequence
 from uuid import UUID
-from sqlalchemy import or_, select, update
+from sqlalchemy import or_, select, update, delete
 from sqlalchemy.orm import selectinload
 
 from rarity_api.common.auth.schemas.auth_credentials import AuthCredentialsCreate
@@ -168,6 +168,11 @@ class ManufacturerRepository(AbstractRepository):
         result = await self._session.execute(s)
         return result.scalars().all()
 
+    async def find_by_name(self, name: str) -> Manufacturer | None:
+        s = select(Manufacturer).where(Manufacturer.name == name)
+        result = await self._session.execute(s)
+        return result.scalars().first()
+
 
 class ManufacturerCityRepository(AbstractRepository):
     model = models.ManufacturerCity
@@ -197,7 +202,8 @@ class ItemRepository(AbstractRepository):
         region: str | None = None,
         country: str | None = None,
         manufacturer: str | None = None,
-        symbol_name: str | None = None
+        symbol_name: str | None = None,
+        book_ids: list[int] | None = None,
     ):
     # Сначала получаем список RP для символа (если передан symbol_name)
         rp_list = []
@@ -223,7 +229,8 @@ class ItemRepository(AbstractRepository):
         
         # Базовый запрос с джойном производителя
         stmt = select(Item).join(Item.manufacturer).limit(offset).offset((page - 1) * offset)
-        
+        if book_ids:
+            stmt = stmt.where(Item.rp.in_(book_ids))
         # Фильтрация по географии (через города производителя)
         if country or region:
             stmt = stmt.join(Manufacturer.cities).join(City.region).join(Region.country)
@@ -272,6 +279,10 @@ class ItemRepository(AbstractRepository):
         s = select(Item).where(Item.rp == book_id)
         result = await self._session.execute(s)
         return result.scalars().first()
+
+    async def delete_by_id(self, item_id: int):
+        await self._session.execute(delete(Item).where(Item.id == item_id))
+        await self._session.commit()
 
 class SearchHistoryRepository(AbstractRepository):
     model = SearchHistory
