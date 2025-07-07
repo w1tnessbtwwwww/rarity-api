@@ -12,7 +12,7 @@ from rarity_api.endpoints.datas import CreateItem, ItemData, SearchHistoryCreate
 from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData, FindByImageData, SearchResponse
 
 from rarity_api.core.database.connector import get_session
-from rarity_api.core.database.models.models import City, Country, Item, Manufacturer, ManufacturerCity, Region, SearchHistory, Symbol, SymbolsLocale
+from rarity_api.core.database.models.models import Country, Item, Manufacturer, ManufacturerCity, SearchHistory, City, Region, Symbol, SymbolsLocale
 from rarity_api.core.database.repos.repos import ItemRepository, ManufacturerRepository, SearchHistoryRepository
 from rarity_api.settings import settings
 
@@ -328,9 +328,11 @@ def full_mapping(item: Item): # -> ItemFullData:
         year_from=int(years_array[0] if years_array[0] != "None" else 0),
         year_to=years_end,
         image=f"{item.rp}" if item.rp else None,
+        region=item.region.name if item.region else "",
+        country=item.country.name if item.country else "",
+        city=item.city.name if item.city else "",
         regions=regions,
         countries=countries,
         cities=cities,
         manufacturer=item.manufacturer.name if item.manufacturer else None
     )
-

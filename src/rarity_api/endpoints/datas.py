@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, List
 from pydantic import BaseModel
 from datetime import datetime
 from pydantic import field_validator
@@ -65,6 +65,9 @@ class ItemData(BaseModel):
 
 
 class ItemFullData(ItemData):
+    country: str
+    region: str
+    city: str
     countries: Optional[List[str]]
     regions: Optional[List[str]]
     cities: Optional[List[str]]
