@@ -12,7 +12,7 @@ from rarity_api.endpoints.datas import CreateItem, ItemData, SearchHistoryCreate
 from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullData, FindByImageData, SearchResponse
 
 from rarity_api.core.database.connector import get_session
-from rarity_api.core.database.models.models import Country, Item, Manufacturer, SearchHistory, Symbol, SymbolsLocale
+from rarity_api.core.database.models.models import City, Country, Item, Manufacturer, ManufacturerCity, Region, SearchHistory, Symbol, SymbolsLocale
 from rarity_api.core.database.repos.repos import ItemRepository, ManufacturerRepository, SearchHistoryRepository
 from rarity_api.settings import settings
 
@@ -159,9 +159,21 @@ async def find_symbols(
 async def get_item(
         item_id: int,
         session: AsyncSession = Depends(get_session)
-) -> ItemFullData:
+): # -> ItemFullData:
     repository = ItemRepository(session)
-    item = await repository.find_by_id(item_id)
+    query = (
+        select(Item)
+        .where(Item.id == item_id)
+        .options(
+            selectinload(Item.manufacturer)
+            .selectinload(Manufacturer.cities)
+            .selectinload(ManufacturerCity.city)
+            .selectinload(City.region)
+            .selectinload(Region.country)
+        )
+    )
+    result = await session.execute(query)
+    item = result.scalars().first()
     print(item)
     if not item:
         return Response(status_code=404)
@@ -238,9 +250,16 @@ def mapping(item: Item) -> ItemData:
         source=item.source
     )
 
-def full_mapping(item) -> ItemFullData:
+def full_mapping(item: Item): # -> ItemFullData:
     years_array = item.production_years.split(" - ")
     years_end = int(years_array[1] if years_array[1] != "now" else 0)
+    print(item.manufacturer.cities)
+
+    cities = [manufacturer_city.city.name for manufacturer_city in item.manufacturer.cities]
+    regions = [manufacturer_city.city.region.name for manufacturer_city in item.manufacturer.cities]
+    countries = [manufacturer_city.city.region.country.name for manufacturer_city in item.manufacturer.cities]
+
+    print(f"cities -- {cities}, regions - {regions}, counties - {countries}")
 
     return ItemFullData(
         id=item.id,
@@ -250,26 +269,9 @@ def full_mapping(item) -> ItemFullData:
         year_from=int(years_array[0] if years_array[0] != "None" else 0),
         year_to=years_end,
         image=f"{settings.api_base_url}/images/mark_{item.rp}.png" if item.rp else None,
-        region=item.region.name if item.region else "",
-        country=item.country.name if item.country else "",
-        city=item.city.name if item.city else "",
-        manufacturer=item.manufacturer.name if item.manufacturer else "",
+        regions=regions,
+        countries=countries,
+        cities=cities,
+        manufacturer=item.manufacturer.name if item.manufacturer else None
     )
 
-def full_mapping(item) -> ItemFullData:
-    years_array = item.production_years.split(" - ")
-    years_end = int(years_array[1] if years_array[1] != "now" else 0)
-
-    return ItemFullData(
-        id=item.id,
-        rp=item.rp,
-        name=item.name,
-        description=item.description,
-        year_from=int(years_array[0] if years_array[0] != "None" else 0),
-        year_to=years_end,
-        image=f"{settings.api_base_url}/images/mark_{item.rp}.png" if item.rp else None,
-        region="",
-        country="",
-        city="",
-        manufacturer="",
-    )
