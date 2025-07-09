@@ -1,7 +1,7 @@
 from typing import List
 
 import requests
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import Response
 
@@ -9,7 +9,7 @@ from rarity_api.endpoints.datas import ItemData, SearchHistoryCreate, ItemFullDa
 
 from rarity_api.core.database.connector import get_session
 from rarity_api.core.database.models.models import Item, SearchHistory
-from rarity_api.core.database.repos.repos import ItemRepository, SearchHistoryRepository
+from rarity_api.core.database.repos.repos import ItemRepository, SearchHistoryRepository, UserFavouritesRepository
 from rarity_api.settings import settings
 
 router = APIRouter(
@@ -61,20 +61,38 @@ async def mark_favourite(
         item_id: int,
         session: AsyncSession = Depends(get_session)
 ) -> ItemData:
+    user_id: int = 1 # TODO: сюда занести ид юзера из депендса
+    repository = UserFavouritesRepository(session)
+    fav_row = await repository.get_user_fav_by_filter(user_id=user_id, item_id=item_id)
+    if fav_row:
+        raise HTTPException(
+            status_code=400,
+            detail="Предмет и так в избранном"
+        )
+
+    await repository.create(user_id=user_id, item_id=item_id)
     repository = ItemRepository(session)
     item = await repository.find_by_id(item_id)
-    if not item:
-        return Response(status_code=404)
     return mapping(item)
+
+@router.delete("/{item_id}/unfav")
+async def unfavourite(item_id: int, session: AsyncSession = Depends(get_session)):
+    user_id: int = 1 # TODO: сюда занести ид юзера из депендса
+    repository = UserFavouritesRepository(session)
+    return await repository.mark_unfav(item_id=item_id, user_id=user_id)
 
 
 @router.get("/favourites")
 async def list_favourites(
         session: AsyncSession = Depends(get_session)
 ) -> List[ItemData]:
+    user_id: int = 1
+    repository = UserFavouritesRepository(session)
+    favs = await repository.get_user_fav_by_filter(user_id=user_id)
     repository = ItemRepository(session)
-    # ...
-    # return [mapping(item) for item in items]
+    items = [await repository.find_by_id(fav.item_id) for fav in favs]
+    return [mapping(item) for item in items]
+
 
 
 @router.post("/find_by_image")

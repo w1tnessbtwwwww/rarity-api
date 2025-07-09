@@ -49,6 +49,7 @@ class User(Base):
     subscription = relationship("Subscription", back_populates="user")
     tokens = relationship("Token", back_populates="user")
     auth_credentials = relationship("AuthCredentials", back_populates="user")
+    favourites: Mapped[List["UserFavourites"]] = relationship("UserFavourites", back_populates="user")
 
 
 
@@ -80,6 +81,13 @@ class Manufacturer(Base):
     cities: Mapped[List["ManufacturerCity"]] = relationship("ManufacturerCity", back_populates="manufacturer")
     items: Mapped["Item"] = relationship("Item", back_populates="manufacturer")
 
+class UserFavourites(Base):
+    __tablename__ = 'user_favourites'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[UUID] = mapped_column(UUID, ForeignKey('users.id'), nullable=False)
+    item_id: Mapped[int] = mapped_column(Integer, ForeignKey('items.id'), nullable=False)
+    item: Mapped["Item"] = relationship("Item", back_populates="favourites")
+    user: Mapped["User"] = relationship("User", back_populates="favourites")
 
 class Item(Base):
     __tablename__ = 'items'
@@ -93,6 +101,7 @@ class Item(Base):
     manufacturer_id: Mapped[int] = mapped_column(Integer, ForeignKey('manufacturers.id'), nullable=False)
     manufacturer: Mapped["Manufacturer"] = relationship("Manufacturer", back_populates="items")
     source: Mapped[Optional[str]]
+    favourites: Mapped[List["UserFavourites"]] = relationship("UserFavourites", back_populates="item")
 
 class Token(Base):
     __tablename__ = 'tokens'

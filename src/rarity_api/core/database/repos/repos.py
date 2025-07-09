@@ -1,6 +1,6 @@
 from typing import Sequence
 from uuid import UUID
-from sqlalchemy import exists, or_, select, update, delete
+from sqlalchemy import and_, exists, or_, select, update, delete
 from sqlalchemy.orm import selectinload
 
 from rarity_api.common.auth.schemas.auth_credentials import AuthCredentialsCreate
@@ -191,6 +191,32 @@ class ManufacturerCityRepository(AbstractRepository):
             obj = await self.create(**kwargs)
             await self._session.commit()
         return obj
+
+class UserFavouritesRepository(AbstractRepository):
+    model = models.UserFavourites
+
+    async def mark_unfav(self, item_id: int, user_id: int):
+        query = (
+            delete(self.model)
+            .where(and_(
+                self.model.item_id == item_id,
+                self.model.user_id == user_id
+            ))
+        )
+        result = await self._session.execute(query)
+        await self._session.commit()
+        return result.rowcount
+
+    async def get_user_fav_by_filter(self, **kwargs):
+        query = (
+            select(models.UserFavourites)
+            .filter_by(**kwargs)
+            .options(
+                selectinload(models.UserFavourites.item), selectinload(models.UserFavourites.user)
+            )
+        )
+        result = await self._session.execute(query)
+        return result.scalars().first()
 
 class ItemRepository(AbstractRepository):
     model = Item
