@@ -35,7 +35,7 @@ async def create_item(create_data: CreateItem, session: AsyncSession = Depends(g
     data_dict.pop("region")
     data_dict.pop("year_from")
     data_dict.pop("year_to")
-    data_dict["production_years"] = f"{'' if create_data.year_from is None else create_data.year_from}-{'' if create_data.year_to is None else create_data.year_to}"
+    data_dict["production_years"] = f"{'' if create_data.year_from is None else create_data.year_from} - {'' if create_data.year_to is None else create_data.year_to}"
     return await ItemRepository(session).create(**data_dict, manufacturer_id=manufacturer.id)
 
 
@@ -64,8 +64,9 @@ async def update_item(
         item.manufacturer_id = manufacturer.id
     item.rp = data.rp
     item.description = data.description
-    item.production_years = data.production_years
+#    item.production_years = data.production_years
     item.photo_links = data.photo_links
+    item.production_years = f"{'' if data.year_from is None else data.year_from} - {'' if data.year_to is None else data.year_to}"
     # item.region = data.region
     item.source = data.source
     await session.commit()
@@ -279,7 +280,8 @@ async def find_by_image(
 
 def mapping(item: Item) -> ItemData:
     years_array = item.production_years.split(" - ")
-    years_end = int(years_array[1] if years_array[1] != "now" else 0)
+#    years_end = int(years_array[1]) if (len(years_array > 0 and years_array[1] != "now") else 0
+    years_end = int(years_array[1].strip()) if (len(years_array) > 1 and years_array[1] != "now") else 0
 
     return ItemData(
         id=item.id,
@@ -298,8 +300,22 @@ def full_mapping(item: Item): # -> ItemFullData:
     print(item.manufacturer.cities)
 
     cities = [manufacturer_city.city.name for manufacturer_city in item.manufacturer.cities]
-    regions = [manufacturer_city.city.region.name for manufacturer_city in item.manufacturer.cities]
-    countries = [manufacturer_city.city.region.country.name for manufacturer_city in item.manufacturer.cities]
+#    regions = [manufacturer_city.city.region.name for manufacturer_city in item.manufacturer.cities]
+#    countries = [manufacturer_city.city.region.country.name for manufacturer_city in item.manufacturer.cities]
+
+    regions = []
+    countries = []
+
+    if item.manufacturer:
+        for mc in item.manufacturer.cities:
+            city = mc.city
+            if city:
+                region = city.region
+                if region:
+                    regions.append(region.name)
+                    country = region.country
+                    if country:
+                        countries.append(country.name)
 
     print(f"cities -- {cities}, regions - {regions}, counties - {countries}")
 
@@ -311,11 +327,16 @@ def full_mapping(item: Item): # -> ItemFullData:
         year_from=int(years_array[0] if years_array[0] != "None" else 0),
         year_to=years_end,
         image=f"{item.rp}" if item.rp else None,
-        region=item.region.name if item.region else "",
-        country=item.country.name if item.country else "",
-        city=item.city.name if item.city else "",
-        regions=regions,
-        countries=countries,
+        region=regions[0] if regions else "",
+        country=countries[0] if countries else "",
+        city=cities[0] if cities else "",
+#        region=item.region.name if item.region else "",
+#        country=item.country.name if item.country else "",
+#        city=item.city.name if item.city else "",
+#        regions=regions,
+#        countries=countries,
+        regions=list(set(regions)),
+        countries=list(set(countries)),
         cities=cities,
         manufacturer=item.manufacturer.name if item.manufacturer else None
     )
