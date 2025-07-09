@@ -1,5 +1,7 @@
+import hashlib
 from typing import List
 
+import cachetools
 import requests
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import or_, select
@@ -35,6 +37,7 @@ async def create_item(create_data: CreateItem, session: AsyncSession = Depends(g
     data_dict.pop("region")
     data_dict.pop("year_from")
     data_dict.pop("year_to")
+    # TODO: пофиксить... чтобы не получалось " - " или "100 - " или " - 100"
     data_dict["production_years"] = f"{'' if create_data.year_from is None else create_data.year_from} - {'' if create_data.year_to is None else create_data.year_to}"
     return await ItemRepository(session).create(**data_dict, manufacturer_id=manufacturer.id)
 
@@ -65,8 +68,9 @@ async def update_item(
     item.rp = data.rp
     item.description = data.description
 #    item.production_years = data.production_years
-    item.photo_links = data.photo_links
+    # TODO: пофиксить... чтобы не получалось " - " или "100 - " или " - 100"
     item.production_years = f"{'' if data.year_from is None else data.year_from} - {'' if data.year_to is None else data.year_to}"
+    item.photo_links = data.photo_links
     # item.region = data.region
     item.source = data.source
     await session.commit()
@@ -211,6 +215,7 @@ async def get_item(
     )
     result = await session.execute(query)
     item = result.scalars().first()
+    # item = await repository.find_by_id(item_id)
     print(item)
     if not item:
         return Response(status_code=404)
@@ -239,6 +244,9 @@ async def list_favourites(
     # return [mapping(item) for item in items]
 
 
+cache = cachetools.TTLCache(maxsize=1000, ttl=300)
+
+
 @router.post("/find_by_image")
 async def find_by_image(
         data: FindByImageData,
@@ -250,17 +258,23 @@ async def find_by_image(
         symbol_name: str = None,
         session: AsyncSession = Depends(get_session)
 ):
-    response = requests.post(
-        # TODO: use env for llm URL
-        'http://host.docker.internal:8080/recognize',
-        json={'image': data.base64}
-    )
-    if response.status_code != 200:
-        return Response(status_code=response.status_code)
-    data = response.json()
-    if data['status'] != 'success':
-        return Response(status_code=400)
-    results = data['results'] if data['results'] else []
+    key = get_cache_key(data.base64)
+
+    if key not in cache:
+        # Вызов нейросети только если нет в кеше
+        response = requests.post(
+            # TODO: use env for llm URL
+            'http://host.docker.internal:8505/recognize',
+            json={'image': data.base64}
+        )
+        if response.status_code != 200:
+            return Response(status_code=response.status_code)
+        data = response.json()
+        if data['status'] != 'success':
+            return Response(status_code=400)
+        cache[key] = data['results'] if data['results'] else []
+
+    results = cache[key]
     sorted_by_similarity = sorted(results, key=lambda d: d['similarity'], reverse=True)
     start = (page - 1) * offset
     end = start + offset
@@ -281,7 +295,7 @@ async def find_by_image(
 def mapping(item: Item) -> ItemData:
     years_array = item.production_years.split(" - ")
 #    years_end = int(years_array[1]) if (len(years_array > 0 and years_array[1] != "now") else 0
-    years_end = int(years_array[1].strip()) if (len(years_array) > 1 and years_array[1] != "now") else 0
+    years_end = int(years_array[1].strip()) if (years_array[1] != "now") else 0
 
     return ItemData(
         id=item.id,
@@ -340,3 +354,7 @@ def full_mapping(item: Item): # -> ItemFullData:
         cities=cities,
         manufacturer=item.manufacturer.name if item.manufacturer else None
     )
+
+
+def get_cache_key(image_base64: str) -> str:
+    return hashlib.sha256(image_base64.encode()).hexdigest()
